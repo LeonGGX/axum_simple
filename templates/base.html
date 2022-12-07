@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+{# la partie head invisible dans le browser #}
+<head>
+    {% block head %}
+    <meta charset="utf-8">
+    <title>{{ title }}</title>
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1">
+    <!-- Latest compiled and minified CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Latest compiled JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- <link rel="stylesheet" href="/css/styles.css"> -->
+    <link rel="icon" href="/favicon.png" type="image/png">
+    {% endblock %}
+</head>
+
+
+<!-- la partie visible dans le browser -->
+<div class="container">
+    <div class="row">
+        <div class="container-fluid">
+            {% block nav %}
+            <div class="navbar navbar-expand-sm sticky-sm-top navbar-dark bg-dark">
+                <div class="container-fluid">
+                    <!-- Links -->
+                    <ul class="navbar-nav">
+                        <li class="nav-item">
+                            <a class="nav-link" href="/">Start</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/persons">Liste Musiciens</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/genres">Liste Genres</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/partitions">Liste Partitions</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/logout">Déconnection</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/about">A propos ...</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/debug/cookies">Debug ...</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            {% endblock %}
+
+            <div class = "container-fluid text-center bg-warning">
+                <h4 class="text-primary">{{ title }}</h4>
+            </div>
+            <!-- Content -->
+            <div class="container-fluid">
+                {% block content %}
+                {% endblock %}
+            </div>
+
+            <!-- Footer -->
+            <footer class="footer fixed-bottom mt-auto bg-info">
+                {% block footer %}
+                <div class="container">
+                    <span class="text-muted">&copy; Copyright 2021 by <a href="http://domain.invalid/">Léon GENGOUX</a></span>
+                </div>
+                {% endblock %}
+            </footer>
+
+        </div>
+    </div>
+</div>
+
+</html>

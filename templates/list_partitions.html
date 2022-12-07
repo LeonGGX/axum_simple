@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block content %}
+<ul>
+    {% for partition in list_partitions %}
+    <li>
+        <h4>Titre: {{ partition.title }}/Auteur: {{partition.full_name}}/Genre: {{partition.name}}</h4>
+    </li>
+    {% endfor %}
+</ul>
+{% endblock %}

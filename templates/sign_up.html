@@ -1,0 +1,56 @@
+
+{% extends "base.html" %}
+{% block content %}
+<p><!--Nothing to see here --></p>
+<div class ="container-fluid bg-primary text-white" id="flash-messages">
+    {% if flash %}
+        {{ flash }}
+    {% endif %}
+</div>
+<p><!--Nothing to see here --></p>
+<div class=container-md" id="signup-form">
+    <form action="" method="post">
+        <div class ="row">
+            <div class="col-2">
+                <label>Entrez le nom d'utilisateur:  </label>
+            </div>
+            <div class="col">
+                <input type="text" name="username">
+            </div>
+        </div>
+        <div class ="row">
+            <div class="col-2">
+                <label>Entrez le mot de passe : </label>
+            </div>
+            <div class="col-2">
+                <input type="password" name="password">
+            </div>
+        </div>
+        <div class ="row">
+            <div class="col-2">
+                <label>Confirmez le mot de passe : </label>
+            </div>
+            <div class="col-2">
+                <input type="password" name="confirm_pwd">
+            </div>
+        </div>
+        <div class ="row">
+            <div class="col-2">
+                <label>Choisissez un rôle : </label>
+            </div>
+            <div class="col-2">
+                <select class="form-select form-select-sm" name="role" id="role_select">
+                    <option value="">--Choisir un role--</option>
+                    <option value="admin">Administrateur</option>
+                    <option value="normal">Normal</option>
+                    <option value="other">Autre</option>
+                </select>
+        </div>
+        <div class="row">
+            <div class="col-2">
+                <input type="submit" value="Sign up">
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}

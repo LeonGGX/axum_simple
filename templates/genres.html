@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="row" id="content-genres">
+    <!-- **************************************************************************************************
+    Le Panneau de Gauche -->
+    <div class="col-auto">
+        <p><!--Nothing to see here --></p>
+        <h5>Ajouter un Genre :</h5>
+        <div class ="row" id="add-genre">
+            <div class="col-auto">
+                <form action="/genres/add" method="post">
+                    <div class="row">
+                        <div class="col-auto">
+                            <input class="form-control form-control-sm" type="text" placeholder="entrer genre ..."
+                                   name="name" id="name" value="" autofocus />
+                        </div>
+                        <div class="col-auto">
+                            <button class="btn btn-primary" type="submit">Ajouter</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <p><!-- ajoute un espacement --></p>
+        <div class ="row" id="find-genre">
+            <div class="col-auto">
+                <h5>Chercher un Genre :</h5>
+            </div>
+            <div class="col-auto">
+                <form action="/genres/find" method="post">
+                    <div class="row">
+                        <div class="col-auto">
+                            <input class="form-control form-control-sm"
+                                   type="text"
+                                   name="name"
+                                   placeholder="Entrer le genre à chercher ...">
+                        </div>
+                        <div class="col-auto">
+                            <button class="btn btn-primary"
+                                    type="submit">Chercher</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <p><!--Nothing to see here --></p>
+        <div class ="container-fluid bg-primary text-white" id="flash-messages">
+            {% if let Some(some_flash) = flash %}
+                {{ some_flash }}
+            {% endif %}
+        </div>
+        <p><!--Nothing to see here --></p>
+        <div class ="row" id="print-genres">
+            <div class="col-auto">
+                <p><!--Nothing to see here --></p>
+                <h5>Imprimer la liste des genres :</h5>
+            </div>
+            <div class="col-auto">
+                <a href="/genres/print" class="btn btn-primary ">Imprimer</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Le Panneau de Droite -->
+    <div class="col-auto">
+        <h4>Liste des Genres</h4>
+        <div class="container infinite-scroll" style="max-height: 500px; overflow-y: scroll;">
+            {% for genre in genres %}
+            <div class ="row" id="list_genres">
+                <div class="col-auto">
+                    <form class="form-inline" id ="form_mod" action="/genres/{{genre.id}}" method="post">
+                        <div class="row">
+                            <div class="col-auto">
+                                <input class="form-control form-control-sm" type="hidden" name="_method" value="put" />
+                                <input class="form-control form-control-sm" type = "text" name="name" value="{{ genre.name }}" />
+                            </div>
+                            <div class="col-auto">
+                                <button class="btn btn-sm btn-success" id="btn_modify" type="submit">Modifier</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="col-auto">
+                    <form class="form-inline" id = "form_del" action="/genres/delete/{{genre.id}}" method="post">
+                        <input class="form-control form-control-sm" type="hidden" name="_method" value="delete" />
+                        <button class="btn btn-sm btn-danger" id="btn_delete" type="submit">Effacer</button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock content %}

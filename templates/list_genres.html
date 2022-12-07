@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Liste des Genres</title>
+</head>
+<body>
+<ul>
+    {% for genre in list_genres %}
+    <li>
+        <h4>{{ genre.name }}</h4>
+    </li>
+    {% endfor %}
+</ul>
+</body>
+</html>
