@@ -26,7 +26,6 @@ mod sessions;
 
 use crate::db::connect::create_pg_pool;
 use crate::db::musicians::find_persons_by_name_parts;
-//use crate::db::genres::find_genre_by_name;
 use crate::handlers::axum_sessions_handlers::{get_session_hdl, set_session_hdl};
 use crate::handlers::genres_handlers::{
     create_genre_hdl, delete_genre_hdl, find_genre_by_name_hdl, list_genres_askama_hdl,
