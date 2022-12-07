@@ -1,0 +1,35 @@
+[package]
+name = "axum_simple"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+axum = { version = "0.6.0", features = ["headers", "macros", "form"]}
+axum-extra = {version = "0.4.0", features = ["cookie-signed"]}
+tokio = { version = "1.0", features = ["full"] }
+
+tracing = "0.1"
+tracing-subscriber = { version="0.3", features = ["env-filter"] }
+tower = "0.4.11"
+tower-http = { version = "0.3", features = ["fs", "add-extension", "trace"] }
+anyhow = "1.0.65"
+hyper = "0.14.20"
+tera = "1.17.1"
+sqlx = { version ="0.6.2", features = ["runtime-tokio-rustls" , "postgres","macros", ]}
+serde = { version = "1.0", features = ["derive"] }
+thiserror = "1.0.37"
+serde_json = "1.0.86"
+lazy_static = "1.4.0"
+#askama = { version = "0.11.1", features =["with-axum"]}
+askama ="0.11.1"
+axum-flash = "0.6.0"
+tower-cookies = "0.8.0"
+dotenvy = "0.15.5"
+futures = "0.3.25"
+async-redis-session = "0.2.2"
+axum-sessions = "0.3.1"
+rand = { version = "0.8.5", features = ["min_const_gen"] }
+axum-core = "0.3.0-rc.2"
+
