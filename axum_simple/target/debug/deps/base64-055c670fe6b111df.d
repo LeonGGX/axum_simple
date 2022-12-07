@@ -1,0 +1,15 @@
+D:\Programmation\Rust\mes_programmes\axum_simple\target\debug\deps\base64-055c670fe6b111df.rmeta: D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\base64-0.13.0\src\lib.rs D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\base64-0.13.0\src\chunked_encoder.rs D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\base64-0.13.0\src\display.rs D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\base64-0.13.0\src\read\mod.rs D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\base64-0.13.0\src\read\decoder.rs D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\base64-0.13.0\src\tables.rs D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\base64-0.13.0\src\write\mod.rs D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\base64-0.13.0\src\write\encoder.rs D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\base64-0.13.0\src\write\encoder_string_writer.rs D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\base64-0.13.0\src\encode.rs D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\base64-0.13.0\src\decode.rs
+
+D:\Programmation\Rust\mes_programmes\axum_simple\target\debug\deps\base64-055c670fe6b111df.d: D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\base64-0.13.0\src\lib.rs D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\base64-0.13.0\src\chunked_encoder.rs D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\base64-0.13.0\src\display.rs D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\base64-0.13.0\src\read\mod.rs D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\base64-0.13.0\src\read\decoder.rs D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\base64-0.13.0\src\tables.rs D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\base64-0.13.0\src\write\mod.rs D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\base64-0.13.0\src\write\encoder.rs D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\base64-0.13.0\src\write\encoder_string_writer.rs D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\base64-0.13.0\src\encode.rs D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\base64-0.13.0\src\decode.rs
+
+D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\base64-0.13.0\src\lib.rs:
+D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\base64-0.13.0\src\chunked_encoder.rs:
+D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\base64-0.13.0\src\display.rs:
+D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\base64-0.13.0\src\read\mod.rs:
+D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\base64-0.13.0\src\read\decoder.rs:
+D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\base64-0.13.0\src\tables.rs:
+D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\base64-0.13.0\src\write\mod.rs:
+D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\base64-0.13.0\src\write\encoder.rs:
+D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\base64-0.13.0\src\write\encoder_string_writer.rs:
+D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\base64-0.13.0\src\encode.rs:
+D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\base64-0.13.0\src\decode.rs:

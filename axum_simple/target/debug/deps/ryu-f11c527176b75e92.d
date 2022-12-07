@@ -1,0 +1,16 @@
+D:\Programmation\Rust\mes_programmes\axum_simple\target\debug\deps\ryu-f11c527176b75e92.rmeta: D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\ryu-1.0.11\src\lib.rs D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\ryu-1.0.11\src\buffer\mod.rs D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\ryu-1.0.11\src\common.rs D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\ryu-1.0.11\src\d2s.rs D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\ryu-1.0.11\src\d2s_full_table.rs D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\ryu-1.0.11\src\d2s_intrinsics.rs D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\ryu-1.0.11\src\digit_table.rs D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\ryu-1.0.11\src\f2s.rs D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\ryu-1.0.11\src\f2s_intrinsics.rs D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\ryu-1.0.11\src\pretty\mod.rs D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\ryu-1.0.11\src\pretty\exponent.rs D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\ryu-1.0.11\src\pretty\mantissa.rs
+
+D:\Programmation\Rust\mes_programmes\axum_simple\target\debug\deps\ryu-f11c527176b75e92.d: D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\ryu-1.0.11\src\lib.rs D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\ryu-1.0.11\src\buffer\mod.rs D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\ryu-1.0.11\src\common.rs D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\ryu-1.0.11\src\d2s.rs D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\ryu-1.0.11\src\d2s_full_table.rs D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\ryu-1.0.11\src\d2s_intrinsics.rs D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\ryu-1.0.11\src\digit_table.rs D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\ryu-1.0.11\src\f2s.rs D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\ryu-1.0.11\src\f2s_intrinsics.rs D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\ryu-1.0.11\src\pretty\mod.rs D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\ryu-1.0.11\src\pretty\exponent.rs D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\ryu-1.0.11\src\pretty\mantissa.rs
+
+D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\ryu-1.0.11\src\lib.rs:
+D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\ryu-1.0.11\src\buffer\mod.rs:
+D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\ryu-1.0.11\src\common.rs:
+D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\ryu-1.0.11\src\d2s.rs:
+D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\ryu-1.0.11\src\d2s_full_table.rs:
+D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\ryu-1.0.11\src\d2s_intrinsics.rs:
+D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\ryu-1.0.11\src\digit_table.rs:
+D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\ryu-1.0.11\src\f2s.rs:
+D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\ryu-1.0.11\src\f2s_intrinsics.rs:
+D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\ryu-1.0.11\src\pretty\mod.rs:
+D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\ryu-1.0.11\src\pretty\exponent.rs:
+D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\ryu-1.0.11\src\pretty\mantissa.rs:

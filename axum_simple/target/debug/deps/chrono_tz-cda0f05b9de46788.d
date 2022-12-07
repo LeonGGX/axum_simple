@@ -1,0 +1,15 @@
+D:\Programmation\Rust\mes_programmes\axum_simple\target\debug\deps\chrono_tz-cda0f05b9de46788.rmeta: D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\chrono-tz-0.6.3\src\lib.rs D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\chrono-tz-0.6.3\src\binary_search.rs D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\chrono-tz-0.6.3\src\directory.rs D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\chrono-tz-0.6.3\src\timezone_impl.rs D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\chrono-tz-0.6.3\src\timezones.rs D:\Programmation\Rust\mes_programmes\axum_simple\target\debug\build\chrono-tz-fecadb493a75f404\out/directory.rs D:\Programmation\Rust\mes_programmes\axum_simple\target\debug\build\chrono-tz-fecadb493a75f404\out/timezones.rs
+
+D:\Programmation\Rust\mes_programmes\axum_simple\target\debug\deps\libchrono_tz-cda0f05b9de46788.rlib: D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\chrono-tz-0.6.3\src\lib.rs D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\chrono-tz-0.6.3\src\binary_search.rs D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\chrono-tz-0.6.3\src\directory.rs D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\chrono-tz-0.6.3\src\timezone_impl.rs D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\chrono-tz-0.6.3\src\timezones.rs D:\Programmation\Rust\mes_programmes\axum_simple\target\debug\build\chrono-tz-fecadb493a75f404\out/directory.rs D:\Programmation\Rust\mes_programmes\axum_simple\target\debug\build\chrono-tz-fecadb493a75f404\out/timezones.rs
+
+D:\Programmation\Rust\mes_programmes\axum_simple\target\debug\deps\chrono_tz-cda0f05b9de46788.d: D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\chrono-tz-0.6.3\src\lib.rs D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\chrono-tz-0.6.3\src\binary_search.rs D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\chrono-tz-0.6.3\src\directory.rs D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\chrono-tz-0.6.3\src\timezone_impl.rs D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\chrono-tz-0.6.3\src\timezones.rs D:\Programmation\Rust\mes_programmes\axum_simple\target\debug\build\chrono-tz-fecadb493a75f404\out/directory.rs D:\Programmation\Rust\mes_programmes\axum_simple\target\debug\build\chrono-tz-fecadb493a75f404\out/timezones.rs
+
+D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\chrono-tz-0.6.3\src\lib.rs:
+D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\chrono-tz-0.6.3\src\binary_search.rs:
+D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\chrono-tz-0.6.3\src\directory.rs:
+D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\chrono-tz-0.6.3\src\timezone_impl.rs:
+D:\Rust\.cargo\registry\src\github.com-1ecc6299db9ec823\chrono-tz-0.6.3\src\timezones.rs:
+D:\Programmation\Rust\mes_programmes\axum_simple\target\debug\build\chrono-tz-fecadb493a75f404\out/directory.rs:
+D:\Programmation\Rust\mes_programmes\axum_simple\target\debug\build\chrono-tz-fecadb493a75f404\out/timezones.rs:
+
+# env-dep:OUT_DIR=D:\\Programmation\\Rust\\mes_programmes\\axum_simple\\target\\debug\\build\\chrono-tz-fecadb493a75f404\\out
