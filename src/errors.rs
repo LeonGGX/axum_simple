@@ -1,19 +1,14 @@
 //! src/errors.rs
 
-//use crate::AppError::Tera;
-//use crate::{globals, AppState};
-//use axum::extract::State;
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
 use axum::Json;
 use serde_json::json;
-//use tera::Tera;
 use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum AppError {
-    //#[error("Page non trouvée")]
-    //NotFound,
+   
     #[error(transparent)]
     Sqlx(#[from] sqlx::Error),
 
@@ -29,10 +24,8 @@ pub enum AppError {
 
 impl AppError {
     pub fn status_code(&self) -> StatusCode {
-        match self {
-            //Self::NotFound => StatusCode::NOT_FOUND,
-            Self::Sqlx(_) | Self::Anyhow(_) => StatusCode::INTERNAL_SERVER_ERROR,
-            Self::Tera(_) => StatusCode::INTERNAL_SERVER_ERROR,
+        match self {           
+            Self::Sqlx(_) | Self::Anyhow(_) => StatusCode::INTERNAL_SERVER_ERROR,           
             Self::AskamaError(_) => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
@@ -56,23 +49,12 @@ impl IntoResponse for AppError {
                 let message = e.to_string();
                 (self.status_code(), message)
             }
-
-            Self::Tera(ref e) => {
-                tracing::error!("Tera error : {:?}", e);
-                let message = e.to_string();
-                (self.status_code(), message)
-            }
+           
             Self::AskamaError(ref e) => {
                 tracing::error!("Askama error : {:?}", e);
                 let message = e.to_string();
                 (self.status_code(), message)
-            }
-
-            // Other errors get mapped normally.
-            //_ => (
-                //StatusCode::UNPROCESSABLE_ENTITY,
-                //"une autre erreur !".to_string(),
-            //),
+            }           
         };
 
         let body = Json(json!({
@@ -82,18 +64,3 @@ impl IntoResponse for AppError {
         (status, body).into_response()
     }
 }
-/*
-pub fn handler_error(
-    State(state): State<AppState>,
-    error_message: String,
-    //) -> Result<Html<String>, (StatusCode, &'static str)> {
-) -> Result<Html<String>, AppError> {
-    let title = "Erreur";
-
-    let mut ctx = tera::Context::new();
-    ctx.insert("title", title);
-    ctx.insert("error_message", &error_message);
-    let body = state.templates.render("error.html", &ctx)?;
-    Ok(Html(body))
-}
-*/
