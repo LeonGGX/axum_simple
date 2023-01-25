@@ -15,35 +15,36 @@ use axum_core::response::IntoResponse;
 /// * uri : the uri of the page not found
 /// ## Returns
 /// StatusCode::NOT_FOUND + Askama template or AppError
-pub async fn handler_404(uri: Uri) -> (StatusCode, HtmlTemplate<NotFoundTemplate>) {
+pub async fn handler_404(uri: Uri) -> (StatusCode, NotFoundTemplate) {
     let title = "Page non trouvée".to_string();
     let template = NotFoundTemplate { title, uri };
-    (StatusCode::NOT_FOUND, HtmlTemplate(template))
+    (StatusCode::NOT_FOUND, template)
 }
 
 /// # Handler
 /// Handler giving information about the site
 /// ## Returns
 /// Askama template or AppError
-pub async fn about_hdl() -> Result<HtmlTemplate<AboutTemplate>, AppError> {
+pub async fn about_hdl() -> Result<AboutTemplate, AppError> {
     let title = "A propos de ...".to_string();
     let template = AboutTemplate { title };
-    Ok(HtmlTemplate(template))
+    Ok(template)
 }
 
 /// # Handler
 /// START PAGE OF THE SITE
 /// ## Returns
 /// Askama template or AppError
-pub async fn start_hdl() -> Result<HtmlTemplate<StartTemplate>, AppError> {
+pub async fn start_hdl() -> Result<StartTemplate, AppError> {
     let title = "Login".to_string();
     let template = StartTemplate { title };
-    Ok(HtmlTemplate(template))
+    Ok(template)
 }
 
 #[debug_handler]
 pub async fn hello_name_askama_hdl(Path(name): Path<String>) -> impl IntoResponse {
     let title = "Askama".to_string();
     let template = HelloTemplate { title, name };
-    HtmlTemplate(template)
+    //HtmlTemplate(template)
+    template
 }

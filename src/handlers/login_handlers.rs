@@ -27,7 +27,7 @@ pub struct LoginPayload {
 pub async fn login_form_askama_hdl(
     State(_app): State<AppState>,
     in_flash: IncomingFlashes,
-) -> (IncomingFlashes, HtmlTemplate<LoginTemplate>) {
+) -> (IncomingFlashes, LoginTemplate) {
     /*
     let str_flash = flash
         .into_iter()
@@ -43,13 +43,14 @@ pub async fn login_form_askama_hdl(
     let title = "Login - S'identifier".to_string();
     let flash = Some(flash);
     let template = LoginTemplate { title, flash };
-    (in_flash, HtmlTemplate(template))
+    (in_flash, template)
 }
 
 /// # post_login_hdl
 /// writes into a session en redirects to "/auth/login"\
 /// Since parsing form data requires consuming the request body, the `Form` extractor must be
-/// *last* if there are multiple extractors in a handler. See ["the order of extractors"][order-of-extractors]
+/// *last* if there are multiple extractors in a handler.   
+/// See ["the order of extractors"][order-of-extractors]
 
 #[debug_handler]
 pub async fn post_login_hdl(
@@ -66,14 +67,16 @@ pub async fn post_login_hdl(
     }
     if login_payload.password.is_empty() {
         return (
-            flash.error("le not de passe manque !"),
+            flash.error("le mot de passe manque !"),
             Redirect::to("/auth/login"),
         );
     }
 
     let login_user = login_payload.username;
+    let login_password = login_payload.password;
+    let user = login_user + "-" + &login_password;
     session
-        .insert("users", login_user)
+        .insert("users", user)
         .expect("Couldn't insert in session");
 
     (

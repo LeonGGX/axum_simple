@@ -108,7 +108,7 @@ pub async fn delete_partition_hdl(
 pub async fn manage_partitions_hdl(
     State(state): State<AppState>,
     in_flash: IncomingFlashes,
-) -> Result<(IncomingFlashes, HtmlTemplate<HandlePartitionsTemplate>), AppError> {
+) -> Result<(IncomingFlashes, HandlePartitionsTemplate), AppError> {
     let flash = in_flash
         .into_iter()
         .map(|(level, text)| format!("{:?}: {}", level, text))
@@ -131,9 +131,10 @@ pub async fn manage_partitions_hdl(
         persons,
         genres,
     };
-    Ok((in_flash, HtmlTemplate(template)))
+    Ok((in_flash, template))
 }
 
+/// # Handler
 ///
 /// Shows a printable list of all partitions in the db
 /// under the form of ShowPartitions
@@ -143,7 +144,7 @@ pub async fn manage_partitions_hdl(
 #[debug_handler]
 pub async fn print_list_partitions_hdl(
     State(state): State<AppState>,
-) -> Result<HtmlTemplate<ListPartitionsTemplate>, AppError> {
+) -> Result<ListPartitionsTemplate, AppError> {
     let list_partitions = list_show_partitions(&state.pool).await?;
     //let show_partitions = get_static_vec_partitions();
 
@@ -152,14 +153,14 @@ pub async fn print_list_partitions_hdl(
         title,
         list_partitions,
     };
-    Ok(HtmlTemplate(template))
+    Ok(template)
 }
 
 //*************************************************************************************
 // Functions to find one or several partitions based on different criteria
 //
 
-///
+/// # Handler
 /// find_partition_by_title
 ///
 /// returns list musicians page with partition(s) found by title
@@ -169,7 +170,7 @@ pub async fn find_partition_title_hdl(
     State(state): State<AppState>,
     in_flash: IncomingFlashes,
     Form(form): Form<Payload>,
-) -> Result<(IncomingFlashes, HtmlTemplate<HandlePartitionsTemplate>), AppError> {
+) -> Result<(IncomingFlashes, HandlePartitionsTemplate), AppError> {
     let flash = in_flash
         .into_iter()
         .map(|(level, text)| format!("{:?}: {}", level, text))
@@ -193,7 +194,7 @@ pub async fn find_partition_title_hdl(
         persons,
         genres,
     };
-    Ok((in_flash, HtmlTemplate(template)))
+    Ok((in_flash, template))
 }
 
 #[debug_handler]
@@ -201,7 +202,7 @@ pub async fn find_partition_genre_hdl(
     State(state): State<AppState>,
     in_flash: IncomingFlashes,
     Form(form): Form<Payload>,
-) -> Result<(IncomingFlashes, HtmlTemplate<HandlePartitionsTemplate>), AppError> {
+) -> Result<(IncomingFlashes, HandlePartitionsTemplate), AppError> {
     let title = "Partition(s) trouvée(s)".to_string();
     let flash = in_flash
         .into_iter()
@@ -226,7 +227,7 @@ pub async fn find_partition_genre_hdl(
         persons,
         genres,
     };
-    Ok((in_flash, HtmlTemplate(template)))
+    Ok((in_flash, template))
 }
 
 #[debug_handler]
@@ -234,7 +235,7 @@ pub async fn find_partition_author_hdl(
     State(state): State<AppState>,
     in_flash: IncomingFlashes,
     Form(form): Form<Payload>,
-) -> Result<(IncomingFlashes, HtmlTemplate<HandlePartitionsTemplate>), AppError> {
+) -> Result<(IncomingFlashes, HandlePartitionsTemplate), AppError> {
     let title = "Partition(s) trouvée(s)".to_string();
     let flash = in_flash
         .into_iter()
@@ -261,5 +262,5 @@ pub async fn find_partition_author_hdl(
         persons,
         genres,
     };
-    Ok((in_flash, HtmlTemplate(template)))
+    Ok((in_flash, template))
 }

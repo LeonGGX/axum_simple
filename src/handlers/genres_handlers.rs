@@ -100,7 +100,7 @@ pub async fn delete_genre_hdl(
 pub async fn manage_genres_askama_hdl(
     State(state): State<AppState>,
     in_flash: IncomingFlashes,
-) -> Result<(IncomingFlashes, HtmlTemplate<HandleGenresTemplate>), AppError> {
+) -> Result<(IncomingFlashes, HandleGenresTemplate), AppError> {
     let flash = in_flash
         .into_iter()
         .map(|(level, text)| format!("{:?}: {}", level, text))
@@ -120,7 +120,7 @@ pub async fn manage_genres_askama_hdl(
         genres,
     };
 
-    Ok((in_flash, HtmlTemplate(template)))
+    Ok((in_flash, template))
 }
 
 /// # Handler
@@ -131,11 +131,11 @@ pub async fn manage_genres_askama_hdl(
 ///
 pub async fn list_genres_askama_hdl(
     State(state): State<AppState>,
-) -> Result<HtmlTemplate<ListGenresTemplate>, AppError> {
+) -> Result<ListGenresTemplate, AppError> {
     let list_genres = list_genres(&state.pool).await?;
     //let list_genres = get_static_vec_genres();
     let template = ListGenresTemplate { list_genres };
-    Ok(HtmlTemplate(template))
+    Ok(template)
 }
 
 //****************************************************************************************
@@ -152,7 +152,7 @@ pub async fn find_genre_by_name_hdl(
     State(state): State<AppState>,
     in_flash: IncomingFlashes,
     Form(form): Form<Payload>,
-) -> Result<HtmlTemplate<HandleGenresTemplate>, AppError> {
+) -> Result<HandleGenresTemplate, AppError> {
     let flash = in_flash
         .into_iter()
         .map(|(level, text)| format!("{:?}: {}", level, text))
@@ -174,5 +174,5 @@ pub async fn find_genre_by_name_hdl(
         flash,
         genres,
     };
-    Ok(HtmlTemplate(template))
+    Ok(template)
 }

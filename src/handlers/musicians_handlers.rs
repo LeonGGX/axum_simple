@@ -6,6 +6,7 @@ use crate::db::musicians::{
     update_person,
 };
 use crate::errors::AppError;
+use crate::globals::{get_static_vec_persons, set_static_vec_persons};
 use crate::{db, AppState};
 use axum::debug_handler;
 use axum::extract::{Path, State};
@@ -23,17 +24,31 @@ pub struct Payload {
 #[debug_handler]
 pub async fn list_persons_askama_hdl(
     State(state): State<AppState>,
-) -> Result<HtmlTemplate<ListPersonsTemplate>, AppError> {
-    let list_persons = db::musicians::list_persons(&state.pool).await?;
+) -> Result<ListPersonsTemplate, AppError> {
+    //let list_persons = db::musicians::list_persons(&state.pool).await?;
+    //set_static_vec_persons(db::musicians::list_persons(&state.pool).await?);
+    let list_persons = get_static_vec_persons();
     let template = ListPersonsTemplate { list_persons };
-    Ok(HtmlTemplate(template))
+    Ok(template)
 }
 
+/// # Handler
+/// **Manages the Musician Page**  
+/// Initiates the static Vec<Person> to show the list of musicians
+///
+/// ## Arguments
+/// * 'state' - the AppState with PgPool
+/// * 'in_flash' - An axum_flash IncomingFlash
+/// ## Returns
+/// * Result with the IncomingFlases and the Askama Template that handles
+/// the Musician Page
+/// * Redirects to /persons page with a flash message\
+/// '''
 #[debug_handler]
 pub async fn manage_persons_askama_hdl(
     State(state): State<AppState>,
     in_flash: IncomingFlashes,
-) -> Result<(IncomingFlashes, HtmlTemplate<HandlePersonsTemplate>), AppError> {
+) -> Result<(IncomingFlashes, HandlePersonsTemplate), AppError> {
     let title = "Gestion des Musiciens".to_string();
     let flash = in_flash
         .clone()
@@ -43,7 +58,12 @@ pub async fn manage_persons_askama_hdl(
         .join(", ");
     tracing::info!("flash : {}", flash);
 
-    let persons = db::musicians::list_persons(&state.pool).await?;
+    // sets the data of the persons DB to the global Vec<Person>
+    set_static_vec_persons(db::musicians::list_persons(&state.pool).await?);
+    // gets the static Vec<Person>
+    let persons = get_static_vec_persons();
+
+    //let persons = db::musicians::list_persons(&state.pool).await?;
 
     let flash = Some(flash);
     let template = HandlePersonsTemplate {
@@ -52,7 +72,7 @@ pub async fn manage_persons_askama_hdl(
         persons,
     };
     // il faut retourner le flash pour qu'il soit enlevé du cookie
-    Ok((in_flash, HtmlTemplate(template)))
+    Ok((in_flash, template))
 }
 
 /// # Handler
@@ -96,7 +116,7 @@ pub async fn update_person_hdl(
 ) -> (Flash, Redirect) {
     let updated_person_name = form.name;
     if let Ok(person) = update_person(id, updated_person_name, &state.pool).await {
-        tracing::info!("person modifyed : {:?}", person);
+        tracing::info!("person modified : {:?}", person);
         let message = format!("Musicien modifié : {}", person.full_name);
         (flash.success(message), Redirect::to("/persons"))
     } else {
@@ -125,9 +145,11 @@ pub async fn delete_person_hdl(
 // Functions to find musicians by different criteria
 //
 
+#[doc = include_str!("../docs/find_person_by_name_hdl.md")]
+
 /// # Handler
 ///
-/// find_person_by_name_hdl
+/// ## pub async fn find_person_by_name_hdl
 ///
 /// Finds person(s) with the first letter or a group of first letters\
 ///  e.g. two authors in the DB BREL, BRASSENS and BARTOK\
@@ -139,13 +161,12 @@ pub async fn delete_person_hdl(
 ///
 pub async fn find_person_by_name_hdl(
     State(state): State<AppState>,
-    //in_flash: IncomingFlashes,
     Form(form): Form<Payload>,
-) -> Result<HtmlTemplate<HandlePersonsTemplate>, AppError> {
+) -> Result<HandlePersonsTemplate, AppError> {
     let person_name_to_find = form.name;
-    let persons = find_persons_by_name_parts(person_name_to_find, &state.pool).await?;
-    //set_static_vec_persons(find_genre_by_name(name, pool).await?);
-    //let persons = get_static_vec_persons();
+    //let persons = find_persons_by_name_parts(person_name_to_find, &state.pool).await?;
+    set_static_vec_persons(find_persons_by_name_parts(person_name_to_find, &state.pool).await?);
+    let persons = get_static_vec_persons();
     let title = "Musicien(s) trouvé(s)".to_string();
     let flash = None;
     let template = HandlePersonsTemplate {
@@ -153,5 +174,5 @@ pub async fn find_person_by_name_hdl(
         flash,
         persons,
     };
-    Ok(HtmlTemplate(template))
+    Ok(template)
 }
