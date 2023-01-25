@@ -1,12 +1,13 @@
+//! src/sessions/useful_sessions.rs
+
 //! Extractors for sessions.
 
 use std::ops::{Deref, DerefMut};
 use std::sync::Arc;
 
+use axum::http::request::Parts;
 use axum::{async_trait, extract::FromRequestParts, Extension};
 
-use axum::http::request::Parts;
-//use axum::http::Request;
 use axum_sessions::async_session;
 use tokio::sync::{OwnedRwLockReadGuard, OwnedRwLockWriteGuard, RwLock};
 
