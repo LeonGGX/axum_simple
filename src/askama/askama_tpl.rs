@@ -1,7 +1,6 @@
 //! src/askama.rs
 
 use crate::models::genre::Genre;
-//use crate::models::partition::ShowPartition;
 use crate::models::partition::ShowPartition;
 use crate::Person;
 use askama::Template;
