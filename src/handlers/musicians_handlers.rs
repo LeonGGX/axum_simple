@@ -1,19 +1,23 @@
 //! src/handlers/musicians_handlers
 
-use crate::askama::askama_tpl::{HandlePersonsTemplate, HtmlTemplate, ListPersonsTemplate};
+use crate::askama::askama_tpl::{HandlePersonsTemplate, /*HtmlTemplate, */ ListPersonsTemplate,};
 use crate::db::musicians::{
-    add_person, delete_person, find_persons_by_name_parts, find_persons_by_name_strict,
-    update_person,
+    add_person, delete_person, find_persons_by_name_parts, /*find_persons_by_name_strict,*/
+    list_persons, update_person,
 };
 use crate::errors::AppError;
-use crate::globals::{get_static_vec_persons, set_static_vec_persons};
-use crate::{db, AppState};
+use crate::globals;
+use crate::models::musician::Person;
+use crate::AppState;
 use axum::debug_handler;
 use axum::extract::{Path, State};
 use axum::response::Redirect;
 use axum::Form;
 use axum_flash::{Flash, IncomingFlashes};
 use serde::{Deserialize, Serialize};
+use sqlx::PgPool;
+//use std::ops::Deref;
+//use std::sync::{Mutex, RwLock};
 
 /// the struct must be public ...
 #[derive(Serialize, Deserialize)]
@@ -21,13 +25,24 @@ pub struct Payload {
     pub name: String,
 }
 
+/// # Handler
+/// **Manages the Printable Musician List Page**  
+/// Initiates the static Vec<Person> to show the list of musicians
+/// filtered or not
+///
+/// ## Arguments
+/// * 'state' - the AppState with PgPool
+///
+/// ## Returns
+/// * Result with the Askama Template that handles
+/// the Musician Page or AppError
+///
+/// '''
 #[debug_handler]
-pub async fn list_persons_askama_hdl(
-    State(state): State<AppState>,
+pub async fn list_persons_askama_hdl(//State(state): State<AppState>,
 ) -> Result<ListPersonsTemplate, AppError> {
-    //let list_persons = db::musicians::list_persons(&state.pool).await?;
-    //set_static_vec_persons(db::musicians::list_persons(&state.pool).await?);
-    let list_persons = get_static_vec_persons();
+    //let list_persons = get_static_vec_persons();
+    let list_persons = get_existing_list_persons_one_cell().await;
     let template = ListPersonsTemplate { list_persons };
     Ok(template)
 }
@@ -59,11 +74,14 @@ pub async fn manage_persons_askama_hdl(
     tracing::info!("flash : {}", flash);
 
     // sets the data of the persons DB to the global Vec<Person>
-    set_static_vec_persons(db::musicians::list_persons(&state.pool).await?);
-    // gets the static Vec<Person>
-    let persons = get_static_vec_persons();
+    //set_static_vec_persons(db::musicians::list_persons(&state.pool).await?);
 
-    //let persons = db::musicians::list_persons(&state.pool).await?;
+    // gets the static Vec<Person>
+    //let persons = get_static_vec_persons();
+
+    let persons = get_list_all_persons_one_cell(&state.pool).await;
+    //set_person_list(db::musicians::list_persons(&state.pool).await.unwrap());
+    //let persons = get_person_list().await;
 
     let flash = Some(flash);
     let template = HandlePersonsTemplate {
@@ -164,9 +182,13 @@ pub async fn find_person_by_name_hdl(
     Form(form): Form<Payload>,
 ) -> Result<HandlePersonsTemplate, AppError> {
     let person_name_to_find = form.name;
-    //let persons = find_persons_by_name_parts(person_name_to_find, &state.pool).await?;
-    set_static_vec_persons(find_persons_by_name_parts(person_name_to_find, &state.pool).await?);
-    let persons = get_static_vec_persons();
+
+    //set_static_vec_persons(find_persons_by_name_parts(person_name_to_find, &state.pool).await?);
+    //let persons = get_static_vec_persons();
+
+    let persons = get_filtered_list_persons_once_cell(&state.pool, person_name_to_find).await;
+    tracing::info!("liste personnes trouvées :{:?}", persons);
+
     let title = "Musicien(s) trouvé(s)".to_string();
     let flash = None;
     let template = HandlePersonsTemplate {
@@ -175,4 +197,29 @@ pub async fn find_person_by_name_hdl(
         persons,
     };
     Ok(template)
+}
+///
+/// Functions with OneCell crate
+///
+///
+pub async fn get_filtered_list_persons_once_cell(
+    pool: &PgPool,
+    person_name: String,
+) -> Vec<Person> {
+    globals::once_cell::set_static_vec_persons(
+        find_persons_by_name_parts(person_name, pool).await.unwrap(),
+    );
+    let persons = globals::once_cell::get_static_vec_persons();
+    persons
+}
+
+pub async fn get_list_all_persons_one_cell(pool: &PgPool) -> Vec<Person> {
+    globals::once_cell::set_static_vec_persons(list_persons(pool).await.unwrap());
+    let persons = globals::once_cell::get_static_vec_persons();
+    persons
+}
+
+pub async fn get_existing_list_persons_one_cell() -> Vec<Person> {
+    let persons = globals::once_cell::get_static_vec_persons();
+    persons
 }

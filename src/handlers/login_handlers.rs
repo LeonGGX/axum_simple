@@ -1,6 +1,6 @@
 //! /src/handlers/login_handlers
 
-use crate::askama::askama_tpl::{HtmlTemplate, LoginTemplate};
+use crate::askama::askama_tpl::LoginTemplate;
 use crate::sessions::useful_sessions::MyWritableSession;
 use crate::AppState;
 use axum::debug_handler;

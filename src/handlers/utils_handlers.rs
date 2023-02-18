@@ -1,12 +1,13 @@
 //! /src/handlers/utils_handlers
 
 use crate::askama::askama_tpl::{
-    AboutTemplate, HelloTemplate, HtmlTemplate, NotFoundTemplate, StartTemplate,
+    AboutTemplate, HelloTemplate, /* HtmlTemplate,*/ NotFoundTemplate, StartTemplate,
 };
 use crate::errors::AppError;
+use axum::body::Bytes;
 use axum::debug_handler;
 use axum::extract::Path;
-use axum::http::{StatusCode, Uri};
+use axum::http::{header, StatusCode, Uri};
 use axum_core::response::IntoResponse;
 
 /// # Handler
@@ -45,6 +46,13 @@ pub async fn start_hdl() -> Result<StartTemplate, AppError> {
 pub async fn hello_name_askama_hdl(Path(name): Path<String>) -> impl IntoResponse {
     let title = "Askama".to_string();
     let template = HelloTemplate { title, name };
-    //HtmlTemplate(template)
     template
+}
+
+pub async fn favicon() -> impl IntoResponse {
+    (
+        [(header::CONTENT_TYPE, "image/png")],
+        Bytes::from_static(include_bytes!(
+            "D:\\Programmation\\Rust\\mes_programmes\\axum_simple\\static\\images\\rust-logo-white.png")),
+    )
 }

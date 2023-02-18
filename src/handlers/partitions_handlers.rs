@@ -6,14 +6,17 @@ use axum::response::Redirect;
 
 use axum_flash::{Flash, IncomingFlashes};
 
-use crate::askama::askama_tpl::{HandlePartitionsTemplate, HtmlTemplate, ListPartitionsTemplate};
-use crate::AppState;
+use crate::askama::askama_tpl::{
+    HandlePartitionsTemplate, /*HtmlTemplate,*/ ListPartitionsTemplate,
+};
+use crate::{/*db,*/ globals, AppState};
 use serde::{Deserialize, Serialize};
+use sqlx::PgPool;
 
 use crate::db::{genres::*, musicians::*, partitions::update_partition, partitions::*};
 use crate::errors::AppError;
-use crate::models::genre::Genre;
-use crate::models::musician::Person;
+//use crate::models::genre::Genre;
+//use crate::models::musician::Person;
 use crate::models::partition::ShowPartition;
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
@@ -99,6 +102,7 @@ pub async fn delete_partition_hdl(
 // Functions to show or print list of partitions
 //
 
+/// # Handler
 ///
 /// Shows the page with the list of partitions via ShowPartition
 ///
@@ -116,18 +120,18 @@ pub async fn manage_partitions_hdl(
         .join(", ");
     tracing::info!("flash : {}", flash);
 
-    let show_partitions = list_show_partitions(&state.pool).await?;
-    //set_static_vec_partitions(list_show_partitions(pool).await?);
+    //set_static_vec_partitions(list_show_partitions(&state.pool).await?);
     //let show_partitions = get_static_vec_partitions();
-
+    let partitions = get_list_all_partitions_one_cell(&state.pool).await;
     let persons = list_persons(&state.pool).await?;
     let genres = list_genres(&state.pool).await?;
     let title = "Gestion des Partitions".to_string();
     let flash = Some(flash);
+
     let template = HandlePartitionsTemplate {
         title,
         flash,
-        partitions: show_partitions,
+        partitions,
         persons,
         genres,
     };
@@ -142,11 +146,11 @@ pub async fn manage_partitions_hdl(
 /// Returns a HTML Page or AppError
 ///
 #[debug_handler]
-pub async fn print_list_partitions_hdl(
-    State(state): State<AppState>,
+pub async fn print_list_partitions_hdl(//State(state): State<AppState>,
 ) -> Result<ListPartitionsTemplate, AppError> {
-    let list_partitions = list_show_partitions(&state.pool).await?;
+    //let list_partitions = list_show_partitions(&state.pool).await?;
     //let show_partitions = get_static_vec_partitions();
+    let list_partitions = get_existing_list_partitions_one_cell().await;
 
     let title = "liste des partitions".to_string();
     let template = ListPartitionsTemplate {
@@ -163,7 +167,7 @@ pub async fn print_list_partitions_hdl(
 /// # Handler
 /// find_partition_by_title
 ///
-/// returns list musicians page with partition(s) found by title
+/// returns partitions page with partition(s) found by title
 ///
 #[debug_handler]
 pub async fn find_partition_title_hdl(
@@ -177,20 +181,19 @@ pub async fn find_partition_title_hdl(
         .collect::<Vec<_>>()
         .join(", ");
     tracing::info!("flash : {}", flash);
-    let partitions = find_partition_by_title(form.name, &state.pool).await?;
-    let title = "Partition(s) trouvée(s)".to_string();
-
-    let show_partitions = vec_showpartitions_from_vec_partitions(partitions, &state.pool).await;
+    //let partitions = find_partition_by_title(form.name, &state.pool).await?;
+    //let show_partitions = vec_showpartitions_from_vec_partitions(partitions, &state.pool).await;
     //set_static_vec_partitions(sh_partitions);
     //let show_partitions = get_static_vec_partitions();
-
+    let partitions = get_list_partitions_by_title_once_cell(&state.pool, form.name).await;
     let persons = list_persons(&state.pool).await?;
     let genres = list_genres(&state.pool).await?;
+    let title = "Partition(s) trouvée(s)".to_string();
     let flash = Some(flash);
     let template = HandlePartitionsTemplate {
         title,
         flash,
-        partitions: show_partitions,
+        partitions,
         persons,
         genres,
     };
@@ -210,12 +213,13 @@ pub async fn find_partition_genre_hdl(
         .collect::<Vec<_>>()
         .join(", ");
     tracing::info!("flash : {}", flash);
-    let partitions = find_partition_by_genre(form.name, &state.pool).await?;
-    let mut show_partitions: Vec<ShowPartition> = Vec::new();
-    for partition in partitions {
-        let show_part = show_one_partition(partition, &state.pool).await?;
-        show_partitions.push(show_part);
-    }
+    //let partitions = find_partition_by_genre(form.name, &state.pool).await?;
+    //let mut show_partitions: Vec<ShowPartition> = Vec::new();
+    //for partition in partitions {
+    //let show_part = show_one_partition(partition, &state.pool).await?;
+    //show_partitions.push(show_part);
+    //}
+    let partitions = get_list_partitions_by_genre_once_cell(&state.pool, form.name).await;
     let persons = list_persons(&state.pool).await?;
     let genres = list_genres(&state.pool).await?;
     let flash = Some(flash);
@@ -223,7 +227,7 @@ pub async fn find_partition_genre_hdl(
     let template = HandlePartitionsTemplate {
         title,
         flash,
-        partitions: show_partitions,
+        partitions,
         persons,
         genres,
     };
@@ -243,24 +247,91 @@ pub async fn find_partition_author_hdl(
         .collect::<Vec<_>>()
         .join(", ");
     tracing::info!("flash : {}", flash);
-    let partitions = find_partition_by_author(form.name, &state.pool).await?;
-    let mut show_partitions: Vec<ShowPartition> = Vec::new();
-    for partition in partitions {
-        let show_part = show_one_partition(partition, &state.pool).await?;
-        show_partitions.push(show_part);
-    }
+    //let partitions = find_partition_by_author(form.name, &state.pool).await?;
+    //let mut show_partitions: Vec<ShowPartition> = Vec::new();
+    //for partition in partitions {
+    //let show_part = show_one_partition(partition, &state.pool).await?;
+    //show_partitions.push(show_part);
+    //}
     //set_static_vec_partitions(show_partitions);
     //let show_partitions = get_static_vec_partitions();
-
+    let partitions = get_list_partitions_by_author_once_cell(&state.pool, form.name).await;
     let persons = list_persons(&state.pool).await?;
     let genres = list_genres(&state.pool).await?;
     let flash = Some(flash);
     let template = HandlePartitionsTemplate {
         title,
         flash,
-        partitions: show_partitions,
+        partitions,
         persons,
         genres,
     };
     Ok((in_flash, template))
+}
+
+/// # Helpers functions
+///
+/// Functions with OneCell crate
+///
+///
+async fn get_list_partitions_by_title_once_cell(
+    pool: &PgPool,
+    partition_title: String,
+) -> Vec<ShowPartition> {
+    let partitions = find_partition_by_title(partition_title, pool)
+        .await
+        .unwrap();
+    let mut show_partitions: Vec<ShowPartition> = Vec::new();
+    for partition in partitions {
+        let show_part = show_one_partition(partition, pool).await.unwrap();
+        show_partitions.push(show_part);
+    }
+    globals::once_cell::set_static_vec_partitions(show_partitions);
+    let partitions = globals::once_cell::get_static_vec_partitions();
+    partitions
+}
+
+async fn get_list_partitions_by_genre_once_cell(
+    pool: &PgPool,
+    partition_genre: String,
+) -> Vec<ShowPartition> {
+    let partitions = find_partition_by_genre(partition_genre, pool)
+        .await
+        .unwrap();
+    let mut show_partitions: Vec<ShowPartition> = Vec::new();
+    for partition in partitions {
+        let show_part = show_one_partition(partition, pool).await.unwrap();
+        show_partitions.push(show_part);
+    }
+    globals::once_cell::set_static_vec_partitions(show_partitions);
+    let partitions = globals::once_cell::get_static_vec_partitions();
+    partitions
+}
+
+async fn get_list_partitions_by_author_once_cell(
+    pool: &PgPool,
+    partition_author: String,
+) -> Vec<ShowPartition> {
+    let partitions = find_partition_by_author(partition_author, pool)
+        .await
+        .unwrap();
+    let mut show_partitions: Vec<ShowPartition> = Vec::new();
+    for partition in partitions {
+        let show_part = show_one_partition(partition, pool).await.unwrap();
+        show_partitions.push(show_part);
+    }
+    globals::once_cell::set_static_vec_partitions(show_partitions);
+    let partitions = globals::once_cell::get_static_vec_partitions();
+    partitions
+}
+
+async fn get_list_all_partitions_one_cell(pool: &PgPool) -> Vec<ShowPartition> {
+    globals::once_cell::set_static_vec_partitions(list_show_partitions(pool).await.unwrap());
+    let partitions = globals::once_cell::get_static_vec_partitions();
+    partitions
+}
+
+async fn get_existing_list_partitions_one_cell() -> Vec<ShowPartition> {
+    let partitions = globals::once_cell::get_static_vec_partitions();
+    partitions
 }
