@@ -7,6 +7,14 @@ use std::sync::Mutex;
 // using crate lazy_static
 //
 use lazy_static::lazy_static;
+
+//*******************************************************************************
+// Des variables globales qui fonctionnent dans le système async
+// Elles vont servir à stocker des valeurs de la DB sous forme de vecteurs
+// Ils vont servir à afficher le résultat d'une recherche dans la page d'affichage et aussi dans
+// la page d'impression, d'où la nécessité d'être des variables globales
+// *******************************************************************************
+
 #[allow(dead_code)]
 lazy_static! {
     static ref VEC_PERSONS: Mutex<Vec<Person>> = Mutex::new(Vec::new());
