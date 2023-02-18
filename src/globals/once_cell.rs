@@ -6,6 +6,13 @@ use crate::models::partition::ShowPartition;
 use once_cell::sync::Lazy;
 use std::sync::RwLock;
 
+//*******************************************************************************
+// Des variables globales qui fonctionnent dans le système async
+// Elles vont servir à stocker des valeurs de la DB sous forme de vecteurs
+// Ils vont servir à afficher le résultat d'une recherche dans la page d'affichage et aussi dans
+// la page d'impression, d'où la nécessité d'être des variables globales
+// *******************************************************************************
+
 static VEC_PERSONS: Lazy<RwLock<Vec<Person>>> = Lazy::new(|| RwLock::new(vec![]));
 static VEC_GENRES: Lazy<RwLock<Vec<Genre>>> = Lazy::new(|| RwLock::new(Vec::new()));
 static VEC_SHOWPARTITIONS: Lazy<RwLock<Vec<ShowPartition>>> = Lazy::new(|| RwLock::new(Vec::new()));
