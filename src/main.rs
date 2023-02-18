@@ -26,8 +26,7 @@ mod print_req_res;
 mod sessions;
 
 use crate::db::connect::create_pg_pool;
-use crate::db::musicians::find_persons_by_name_parts;
-//use crate::db::genres::find_genre_by_name;
+//use crate::db::musicians::find_persons_by_name_parts;
 use crate::handlers::axum_sessions_handlers::{get_session_hdl, set_session_hdl};
 use crate::handlers::genres_handlers::{
     create_genre_hdl, delete_genre_hdl, find_genre_by_name_hdl, list_genres_askama_hdl,
@@ -40,8 +39,8 @@ use crate::handlers::partitions_handlers::{
     find_partition_genre_hdl, find_partition_title_hdl, manage_partitions_hdl,
     print_list_partitions_hdl, update_partition_hdl,
 };
+use crate::handlers::signup_handlers::{post_signup_hdl, signup_form_askama_hdl};
 use crate::handlers::{musicians_handlers::*, utils_handlers::*};
-//use crate::log::LogLayer;
 use crate::models::musician::Person;
 use crate::print_req_res::print_req_cookies_askama;
 
@@ -57,7 +56,8 @@ async fn main() -> anyhow::Result<()> {
         .with(
             tracing_subscriber::fmt::layer()
                 .with_target(false)
-                .without_time(),
+                .without_time()
+                .pretty(),
         )
         .init();
 
@@ -107,8 +107,9 @@ async fn main() -> anyhow::Result<()> {
 
     // Authorisation Router
     // the route "/login" correspond to "/auth/login"
-    let auth_routes =
-        Router::new().route("/login", get(login_form_askama_hdl).post(post_login_hdl));
+    let auth_routes = Router::new()
+        .route("/login", get(login_form_askama_hdl).post(post_login_hdl))
+        .route("/signup", get(signup_form_askama_hdl).post(post_signup_hdl));
 
     // A router with state : a PgPool is necessary and is to be found in the state
     // with_state(AppState{}) comes at the end or if it's general later in app
@@ -161,7 +162,8 @@ async fn main() -> anyhow::Result<()> {
                 //.layer(middleware::from_fn(print_full_request))
                 //.layer(LogLayer)
                 .layer(session_layer),
-        );
+        )
+        .route("/favicon.png", get(favicon));
 
     let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
     tracing::debug!("listening on {}", addr);

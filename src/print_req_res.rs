@@ -3,6 +3,8 @@
 use crate::askama::askama_tpl::{DebugTemplate, HtmlTemplate};
 use crate::errors::AppError;
 use crate::sessions::useful_sessions::MyWritableSession;
+use axum::headers::authorization::Basic;
+use axum::headers::Authorization;
 use axum::{
     body::{Body, Bytes},
     headers::Cookie,
@@ -11,6 +13,8 @@ use axum::{
     response::{IntoResponse, Response},
     TypedHeader,
 };
+
+use std::option::Option;
 
 #[allow(dead_code)]
 pub async fn print_request_response(
@@ -54,12 +58,10 @@ where
 }
 #[allow(dead_code)]
 pub async fn print_req_cookies_askama(
-    cookie: TypedHeader<Cookie>,
-    //auth: Option<Box<TypedHeader<Authorization<Bearer>>>>,
     session: MyWritableSession,
+    auth: Option<TypedHeader<Authorization<Basic>>>,
+    cookie: TypedHeader<Cookie>,
 ) -> Result<HtmlTemplate<DebugTemplate>, AppError> {
-    //20
-
     let str_cookie_one = format!("{cookie:?}");
 
     let s = ";";
@@ -68,18 +70,18 @@ pub async fn print_req_cookies_askama(
     let v: Vec<&str> = str.split(s).collect();
 
     let cookies: Vec<String> = v.iter().map(|&x| x.into()).collect();
-    /*
-    let str_auth: String;
 
-    if let a = Some(auth.clone()) {
+    let str_auth: String;
+    if let Some(auth) = auth {
         str_auth = format!("{auth:?}");
     } else {
         str_auth = "Pas de Header Authorisation".to_string();
     }
-    */
+    tracing::info!("{str_auth}");
+
     let session_user = session.get_raw("users").unwrap_or_default();
     let session_role = session.get_raw("role").unwrap_or_default();
-    let str_auth = String::from("Authorisation bearer pas fait");
+    //let str_auth = String::from("Authorisation bearer pas fait");
     let title = "Debug ...".to_string();
     let template = DebugTemplate {
         title,
