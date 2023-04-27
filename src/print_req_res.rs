@@ -1,9 +1,9 @@
 //! src/print_req_res.rs
 
-use crate::askama::askama_tpl::{DebugTemplate, HtmlTemplate};
+use crate::askama::askama_tpl::{DebugTemplate, DebugTemplateTwo};
 use crate::errors::AppError;
-use crate::sessions::useful_sessions::MyWritableSession;
-use axum::headers::authorization::Basic;
+
+use axum::headers::authorization::Bearer;
 use axum::headers::Authorization;
 use axum::{
     body::{Body, Bytes},
@@ -14,6 +14,10 @@ use axum::{
     TypedHeader,
 };
 
+//use crate::models::user::User;
+//use axum_sessions::extractors::WritableSession;
+use axum::http::header;
+use axum_extra::extract::CookieJar;
 use std::option::Option;
 
 #[allow(dead_code)]
@@ -58,10 +62,10 @@ where
 }
 #[allow(dead_code)]
 pub async fn print_req_cookies_askama(
-    session: MyWritableSession,
-    auth: Option<TypedHeader<Authorization<Basic>>>,
+    //session: WritableSession,
+    auth: Option<TypedHeader<Authorization<Bearer>>>,
     cookie: TypedHeader<Cookie>,
-) -> Result<HtmlTemplate<DebugTemplate>, AppError> {
+) -> Result<DebugTemplate, AppError> {
     let str_cookie_one = format!("{cookie:?}");
 
     let s = ";";
@@ -75,53 +79,97 @@ pub async fn print_req_cookies_askama(
     if let Some(auth) = auth {
         str_auth = format!("{auth:?}");
     } else {
-        str_auth = "Pas de Header Authorisation".to_string();
+        str_auth = "Pas de Header Authorisation Bearer".to_string();
     }
     tracing::info!("{str_auth}");
-
-    let session_user = session.get_raw("users").unwrap_or_default();
-    let session_role = session.get_raw("role").unwrap_or_default();
-    //let str_auth = String::from("Authorisation bearer pas fait");
+    /*
+       if let Some(user) = session.get::<User>("user") {
+           let title = "Debug ...".to_string();
+           let session_user = user.name;
+           let session_role = user.role;
+           let template = DebugTemplate {
+               title,
+               cookies,
+               str_auth,
+               session_user,
+               session_role,
+           };
+           Ok(template)
+       } else {
+           let title = "Debug ...".to_string();
+           let session_user = "no session user".to_string();
+           let session_role = "".to_string();
+           let template = DebugTemplate {
+               title,
+               cookies,
+               str_auth,
+               session_user,
+               session_role,
+           };
+    */
     let title = "Debug ...".to_string();
     let template = DebugTemplate {
         title,
         cookies,
         str_auth,
-        session_user,
-        session_role,
     };
-    Ok(HtmlTemplate(template))
+    Ok(template)
 }
-/*
-pub async fn print_req_headers(
-    request: Box<Request<dyn Header>>,
-) -> String {
-    let(parts, header) = request.into_parts();
 
+#[allow(dead_code)]
+pub async fn print_cookies_askama<B>(cookie_jar: CookieJar, req: Request<B>) -> DebugTemplateTwo {
+    let auth_token = cookie_jar
+        .get("auth_token")
+        .map(|cookie| cookie.value().to_string())
+        .or_else(|| {
+            req.headers()
+                .get(header::AUTHORIZATION)
+                .and_then(|auth_header| auth_header.to_str().ok())
+                .and_then(|auth_value| {
+                    if auth_value.starts_with("Bearer ") {
+                        Some(auth_value[7..].to_owned())
+                    } else {
+                        None
+                    }
+                })
+        });
+    let refresh_token = cookie_jar
+        .get("refresh_token")
+        .map(|cookie| cookie.value().to_string())
+        .or_else(|| {
+            req.headers()
+                .get(header::AUTHORIZATION)
+                .and_then(|auth_header| auth_header.to_str().ok())
+                .and_then(|auth_value| {
+                    if auth_value.starts_with("Bearer ") {
+                        Some(auth_value[7..].to_owned())
+                    } else {
+                        None
+                    }
+                })
+        });
+    let logged_in = cookie_jar
+        .get("logged_in")
+        .map(|cookie| cookie.value().to_string())
+        .or_else(|| {
+            req.headers()
+                .get(header::AUTHORIZATION)
+                .and_then(|auth_header| auth_header.to_str().ok())
+                .and_then(|auth_value| {
+                    if auth_value.starts_with("Bearer ") {
+                        Some(auth_value[7..].to_owned())
+                    } else {
+                        None
+                    }
+                })
+        });
+
+    let title = "Liste des Cookies".to_string();
+    let template = DebugTemplateTwo {
+        title,
+        auth_token,
+        refresh_token,
+        logged_in,
+    };
+    template
 }
-*/
-
-/*
-///
-/// Utility function to parse usernames
-/// Returns a String with the parsed username or AppError
-///
-pub fn parse(s: &String) -> Result<String, AppError> {
-    // `.trim()` returns a view over the input `s` without trailing
-    // whitespace-like characters.
-    // `.is_empty` checks if the view contains any character.
-    let is_empty_or_whitespace = s.trim().is_empty();
-
-
-    // Iterate over all characters in the input `s` to check if any of them matches
-    // one of the characters in the forbidden array.
-    let forbidden_characters = ['/', '(', ')', '"', '<', '>', '\\', '{', '}', '#', '*', ' '];
-    let contains_forbidden_characters = s.chars().any(|g| forbidden_characters.contains(&g));
-
-    if is_empty_or_whitespace || is_too_long || contains_forbidden_characters {
-        return Err(AppError::ValidationError);
-    } else {
-        return Ok(s.to_string());
-    }
-}
-*/
