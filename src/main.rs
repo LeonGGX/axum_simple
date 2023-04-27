@@ -53,12 +53,12 @@ async fn main() -> anyhow::Result<()> {
     let env = Config::init();
 
     //*****************************************************
-    // les données pour ouvrir la base de données Postgresql
+    // Postgresql db pool initiation -- uses sqlx
 
-    // on crée le pool Postgresql de sqlx
+    // pool creation
     let pool = create_pg_pool(env.clone().database_url).await?;
 
-    // on crée un client redis
+    // redis client creation
     let redis_client = create_redis_client(env.clone().redis_url).await?;
 
     //*****************************************************
@@ -70,7 +70,7 @@ async fn main() -> anyhow::Result<()> {
 
     //******************************************************
     // axum-flash
-    // vient de tower_cookies::Key
+    // comes from tower_cookies::Key
     let key = Key::generate();
     let flash_config = axum_flash::Config::new(key).use_secure_cookies(false);
 
@@ -99,19 +99,16 @@ async fn main() -> anyhow::Result<()> {
     Ok(())
 }
 
-async fn main_response_mapper<B>(res: Response<B>) -> Response<B> {
-    println!("->> {:<12} - main_response_mapper", "RES_MAPPER");
-    println!();
-    res
-}
 
 /// # Application State
 /// passed to the routers where needed with _router.with_state(state)_
 /// and can be used by the handlers   
 ///
 /// ## Fields
-/// - PgPool to connect to the DB
+/// - PgPool to connect to the PostgresQL DB with sqlx
 /// - flash_config needed by axum_flash
+/// - env the config elements (e..g. token keys, ... from .env)
+/// - redis_client a Client for the redis server used for sessions
 ///
 #[derive(Clone, FromRef)]
 pub struct AppState {
