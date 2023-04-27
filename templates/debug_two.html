@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="center">
+  <h4>Auth_Token : </h4>
+  <p>
+    {% if let Some(auth_token) = auth_token %}
+      {{ auth_token }}
+    {% else -%}
+      no auth_token
+    {% endif %}
+  </p>
+  <p><!--         --></p>
+  <h4>Refresh_Token : </h4>
+  <p>
+    {% if let Some(refresh_token) = refresh_token %}
+      {{ refresh_token }}
+    {% else -%}
+      no refresh_token
+    {% endif %}
+  </p>
+  <p><!--         --></p>
+  <h4>Logged_in : </h4>
+  <p>
+    {% if let Some(logged_in) = logged_in %}
+      {{ logged_in }}
+    {% else -%}
+      false
+    {% endif %}
+  </p>
+</div>
+{% endblock content %}

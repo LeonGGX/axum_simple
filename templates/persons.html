@@ -8,11 +8,13 @@
         <div class ="row" id="add-person">
             <h5>Ajouter un Musicien :</h5>
             <div class="col-auto">
-                <form action="/persons/add" method="post">
+                <form action="/api/persons/add" method="post">
                     <div class="row">
                         <div class="col-auto">
-                            <input class="form-control form-control-sm" type="text" placeholder="entrer nom et prénom ..."
-                                   name="full_name" id="full_name" value="" autofocus />
+                            <input class="form-control form-control-sm"
+                                   type="text" name="name"
+                                   placeholder="entrer nom et prénom ..."
+                            />
                         </div>
                         <div class="col-auto">
                             <button class="btn btn-primary" type="submit">Ajouter</button>
@@ -27,12 +29,13 @@
                 <h5>Chercher un Musicien :</h5>
             </div>
             <div class="col-auto">
-                <form action="/persons/find" method="post">
+                <form action="/api/persons/find" method="post">
                     <div class="row">
                         <div class="col-auto">
                             <input class="form-control form-control-sm"
                                    type="text" name="name"
-                                   placeholder="Entrer le nom de la personne ..."/>
+                                   placeholder="Entrer le nom de la personne ..."
+                            />
                         </div>
                         <div class="col-auto">
                             <button class="btn btn-primary" type="submit">Chercher</button>
@@ -42,7 +45,7 @@
             </div>
         </div>
         <p>{# Nothing to see here #}</p>
-        <div class ="container-fluid bg-primary text-white" id="flash-messages">
+        <div class ="container-fluid bg-info" id="flash-messages">
             {% if let Some(some_flash) = flash %}
                 {{ some_flash }}
             {% endif %}
@@ -55,7 +58,7 @@
                 <h5>Imprimer la liste des musiciens :</h5>
             </div>
             <div class="col-auto">
-                <a href="/persons/print" class="btn btn-primary ">Imprimer</a>
+                <a href="/api/persons/print" class="btn btn-primary ">Imprimer</a>
             </div>
         </div>
     </div>
@@ -69,12 +72,12 @@
                 <div class="row " id="list_persons" >
                     <!-- une première rengée avec la première form -->
                     <div class="col-auto">
-                        <form id ="form_mod" class="form-inline" action="/persons/{{ person.id }}" method="post">
+                        <form id ="form_mod" class="form-inline" action="/api/persons/{{ person.id }}" method="post">
                             <!-- une colonne dans la form -->
                             <div class="row">
                                 <div class="col-auto">
                                     <input type="hidden" name="_method" value="put" />
-                                    <input class="form-control form-control-sm" type="text" name="full_name" value="{{ person.full_name }}" />
+                                    <input class="form-control form-control-sm" type="text" name="name" value="{{ person.full_name }}" />
                                 </div>
                                 <div class="col-auto">
                                     <button class="btn btn-sm btn-success" id="btn_modify" type="submit">Modifier</button>
@@ -83,7 +86,7 @@
                         </form>
                     </div>
                     <div class="col-auto">
-                        <form class="form-inline" id = "form_del" action="/persons/delete/{{ person.id }}" method="post">
+                        <form class="form-inline" id = "form_del" action="/api/persons/delete/{{ person.id }}" method="post">
                             <input type="hidden" name="_method" value="delete" />
                             <button class="btn btn-sm btn-danger" id="btn_delete" type="submit">Effacer</button>
                         </form>

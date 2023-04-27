@@ -2,18 +2,15 @@
 {% block content %}
 <div class="center">
     <h3>Cookies :</h3>
-  <p>
-    {% for cookie in cookies %}
-        {{ cookie }}
-    {% endfor %}
-  </p>
+    <p>
+        {% for cookie in cookies %}
+            {{ cookie }}
+        {% endfor %}
+    </p>
     <h3>Autorisations :</h3>
     <p>
         {{ str_auth }}
     </p>
-    <h3>Session User :</h3>
-    <p>
-        {{ session_user }}
-    </p>
+
 </div>
 {% endblock content %}

@@ -8,7 +8,7 @@
         <p><!--Nothing to see here --></p>
         <div class="container-fluid bg-info" id="add-partition">
             <h5>Ajouter une Partition :</h5>
-            <form action="/partitions/add" method="post">
+            <form action="/api/partitions/add" method="post">
                 <label for="title">entrer le titre :</label>
                 <input class="form-control form-control-sm" type="text" placeholder="entrer titre ..."
                        name="title" id="title" value="" autofocus/>
@@ -40,7 +40,7 @@
 
         <div class="container-fluid bg-primary" id="find-partition">
             <h5>Chercher une partition :</h5>
-            <form action="/partitions/find/title" method="post">
+            <form action="/api/partitions/find/title" method="post">
                 <div class="row">
                     <div class="col-auto">
                         <input class="form-control form-control-sm" type="text" name="name" placeholder="Entrer le titre ...">
@@ -50,7 +50,7 @@
                     </div>
                 </div>
             </form>
-            <form action="/partitions/find/author" method="post">
+            <form action="/api/partitions/find/author" method="post">
                 <div class="row">
                     <div class="coll-auto">
                         <select class="form-select form-select-sm" name="name" id="musicians_find_select">
@@ -66,7 +66,7 @@
                     </div>
                 </div>
             </form>
-            <form action="/partitions/find/genre" method="post">
+            <form action="/api/partitions/find/genre" method="post">
                 <div class="row">
                     <div class="col-auto">
                         <select class="form-select form-select-sm" name="name" id="genres_find_select">
@@ -83,7 +83,7 @@
             </form>
         </div>
         <p><!--Nothing to see here --></p>
-        <div class ="container-fluid bg-primary text-white" id="flash-messages">
+        <div class ="container-fluid bg-info" id="flash-messages">
             {% if let Some(some_flash) = flash %}
                 {{ some_flash }}
             {% endif %}
@@ -101,7 +101,7 @@
             <div class="row" id="list_partitions">
                 <!-- une première rangée avec la première form -->
                 <div class="col-auto">
-                    <form id ="form_mod" class="form-inline" action="/partitions/{{show_partition.id}}" method="post">
+                    <form id ="form_mod" class="form-inline" action="/api/partitions/{{show_partition.id}}" method="post">
                         <!-- une colonne dans la form -->
                         <div class="row">
                             <div class="col-auto">
@@ -143,7 +143,7 @@
                 </div> <!-- fin col-auto n°1 -->
                 <!-- une colonne pour la form delete -->
                 <div class="col-auto">
-                    <form class="form-inline" id="form_del" action="/partitions/delete/{{show_partition.id}}" method="post">
+                    <form class="form-inline" id="form_del" action="/api/partitions/delete/{{show_partition.id}}" method="post">
                         <input class="form-control form-control-sm" type="hidden" name="_method" value="delete" />
                         <button class="btn btn-sm btn-danger" id="btn_delete" type="submit">Effacer</button>
                     </form>
@@ -158,7 +158,7 @@
                     <h5>Imprimer la liste des partitions :</h5>
                 </div>
                 <div class="col-auto">
-                    <a href="/partitions/print" class="btn btn-primary btn-sm">Imprimer</a>
+                    <a href="/api/partitions/print" class="btn btn-primary btn-sm">Imprimer</a>
                 </div>
             </div>
         </div>

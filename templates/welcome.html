@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block content %}
+    <!-- Content -->
+    <div class="container-fluid">
+        <!--
+        <div class ="container-fluid bg-info" id="flash-messages">
+            {% if let Some(some_flash) = flash %}
+            {{ some_flash }}
+            {% endif %}
+        </div>
+        -->
+        <div class = "alert alert-success">
+            {% if let Some(some_flash) = flash %}
+            {{ some_flash }}
+            {% endif %}
+        </div>
+
+        <div class="w3-container">
+            <h1>Bienvenue dans l'application de gestion des partitions</h1>
+            <h2>Vous pouvez commencer à travailler en naviguant ci-dessus</h2>
+        </div>
+    </div>
+{% endblock %}
