@@ -1,5 +1,6 @@
 # axum_simple
-## a new approach of a site for managing partitions using axum 0.6
+## a site for managing music partitions using axum 0.6   
+## with jwt authentication and redis session
 uses Rust, HTML  
-uses axum, sqlx, Postgresql, Askama Templates,  
+uses axum, sqlx, Postgresql, Askama Templates, redis, ...  
 No Javascript at all ...
