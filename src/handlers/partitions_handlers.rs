@@ -6,15 +6,13 @@ use axum::response::Redirect;
 
 use axum_flash::{Flash, IncomingFlashes};
 
-use crate::askama::askama_tpl::{
-    HandlePartitionsTemplate, /*HtmlTemplate,*/ ListPartitionsTemplate,
-};
-use crate::{/*db,*/ globals, AppState};
+use crate::askama::askama_tpl::{HandlePartitionsTemplate, ListPartitionsTemplate};
+use crate::{globals, AppState};
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
 
 use crate::db::{genres::*, musicians::*, partitions::update_partition, partitions::*};
-use crate::errors::AppError;
+use crate::errors::MyAppError;
 //use crate::models::genre::Genre;
 //use crate::models::musician::Person;
 use crate::models::partition::ShowPartition;
@@ -49,11 +47,11 @@ pub async fn create_partition_hdl(
     {
         tracing::info!("partition added : {:?}", partition);
         let message = format!("Partition ajoutée : {}", partition.title);
-        (flash.success(message), Redirect::to("/partitions"))
+        (flash.success(message), Redirect::to("/api/partitions"))
     } else {
         tracing::info!("error adding partition");
         let message = "Partition pas ajoutée".to_string();
-        (flash.error(message), Redirect::to("/partitions"))
+        (flash.error(message), Redirect::to("/api/partitions"))
     }
 }
 #[debug_handler]
@@ -62,7 +60,7 @@ pub async fn update_partition_hdl(
     flash: Flash,
     Path(id): Path<i32>,
     Form(form): Form<ShowPartition>,
-) -> Result<(Flash, Redirect), AppError> {
+) -> Result<(Flash, Redirect), MyAppError> {
     let partition_title = form.title;
 
     let person = find_persons_by_name_strict(form.full_name, &state.pool).await?;
@@ -76,11 +74,11 @@ pub async fn update_partition_hdl(
     {
         tracing::info!("partition modified : {:?}", partition);
         let message = format!("Partition modifiée : {}", partition.title);
-        Ok((flash.success(message), Redirect::to("/partitions")))
+        Ok((flash.success(message), Redirect::to("/api/partitions")))
     } else {
         tracing::info!("error modifying partition");
         let message = "Partition pas modifiée".to_string();
-        Ok((flash.error(message), Redirect::to("/partitions")))
+        Ok((flash.error(message), Redirect::to("/api/partitions")))
     }
 }
 #[debug_handler]
@@ -94,7 +92,7 @@ pub async fn delete_partition_hdl(
         (flash.success(message), Redirect::to("/partitions"))
     } else {
         let message = "Partition pas effacée".to_string();
-        (flash.error(message), Redirect::to("/partitions"))
+        (flash.error(message), Redirect::to("/api/partitions"))
     }
 }
 
@@ -112,7 +110,7 @@ pub async fn delete_partition_hdl(
 pub async fn manage_partitions_hdl(
     State(state): State<AppState>,
     in_flash: IncomingFlashes,
-) -> Result<(IncomingFlashes, HandlePartitionsTemplate), AppError> {
+) -> Result<(IncomingFlashes, HandlePartitionsTemplate), MyAppError> {
     let flash = in_flash
         .into_iter()
         .map(|(level, text)| format!("{:?}: {}", level, text))
@@ -120,8 +118,6 @@ pub async fn manage_partitions_hdl(
         .join(", ");
     tracing::info!("flash : {}", flash);
 
-    //set_static_vec_partitions(list_show_partitions(&state.pool).await?);
-    //let show_partitions = get_static_vec_partitions();
     let partitions = get_list_all_partitions_one_cell(&state.pool).await;
     let persons = list_persons(&state.pool).await?;
     let genres = list_genres(&state.pool).await?;
@@ -146,10 +142,7 @@ pub async fn manage_partitions_hdl(
 /// Returns a HTML Page or AppError
 ///
 #[debug_handler]
-pub async fn print_list_partitions_hdl(//State(state): State<AppState>,
-) -> Result<ListPartitionsTemplate, AppError> {
-    //let list_partitions = list_show_partitions(&state.pool).await?;
-    //let show_partitions = get_static_vec_partitions();
+pub async fn print_list_partitions_hdl() -> Result<ListPartitionsTemplate, MyAppError> {
     let list_partitions = get_existing_list_partitions_one_cell().await;
 
     let title = "liste des partitions".to_string();
@@ -174,7 +167,7 @@ pub async fn find_partition_title_hdl(
     State(state): State<AppState>,
     in_flash: IncomingFlashes,
     Form(form): Form<Payload>,
-) -> Result<(IncomingFlashes, HandlePartitionsTemplate), AppError> {
+) -> Result<(IncomingFlashes, HandlePartitionsTemplate), MyAppError> {
     let flash = in_flash
         .into_iter()
         .map(|(level, text)| format!("{:?}: {}", level, text))
@@ -205,7 +198,7 @@ pub async fn find_partition_genre_hdl(
     State(state): State<AppState>,
     in_flash: IncomingFlashes,
     Form(form): Form<Payload>,
-) -> Result<(IncomingFlashes, HandlePartitionsTemplate), AppError> {
+) -> Result<(IncomingFlashes, HandlePartitionsTemplate), MyAppError> {
     let title = "Partition(s) trouvée(s)".to_string();
     let flash = in_flash
         .into_iter()
@@ -239,7 +232,7 @@ pub async fn find_partition_author_hdl(
     State(state): State<AppState>,
     in_flash: IncomingFlashes,
     Form(form): Form<Payload>,
-) -> Result<(IncomingFlashes, HandlePartitionsTemplate), AppError> {
+) -> Result<(IncomingFlashes, HandlePartitionsTemplate), MyAppError> {
     let title = "Partition(s) trouvée(s)".to_string();
     let flash = in_flash
         .into_iter()

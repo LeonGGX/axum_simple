@@ -2,6 +2,7 @@
 
 use axum::debug_handler;
 use axum::extract::{Form, Path, State};
+use axum::http::StatusCode;
 use axum::response::Redirect;
 use axum_flash::{Flash, IncomingFlashes};
 
@@ -11,7 +12,7 @@ use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
 
 use crate::db::genres::*;
-use crate::errors::AppError;
+use crate::errors::MyAppError;
 //use crate::handlers::musicians_handlers::get_filtered_list_persons_once_cell;
 
 use crate::models::genre::Genre;
@@ -53,7 +54,7 @@ pub async fn create_genre_hdl(
     } else {
         tracing::info!("Error adding genre");
         let message = "Genre pas ajouté".to_string();
-        (flash.error(message), Redirect::to("/genres"))
+        (flash.error(message), Redirect::to("/api/genres"))
     }
 }
 
@@ -68,11 +69,11 @@ pub async fn update_genre_hdl(
     if let Ok(genre) = update_genre(id, updated_genre_name, &state.pool).await {
         tracing::info!("genre modifyed : {:?}", genre);
         let message = format!("Genre modifié : {}", genre.name);
-        (flash.success(message), Redirect::to("/genres"))
+        (flash.success(message), Redirect::to("/api/genres"))
     } else {
         tracing::info!("error modifying genre");
         let message = "Genre pas modifié".to_string();
-        (flash.error(message), Redirect::to("/genres"))
+        (flash.error(message), Redirect::to("/api/genres"))
     }
 }
 
@@ -84,10 +85,10 @@ pub async fn delete_genre_hdl(
 ) -> (Flash, Redirect) {
     if let Ok(deleted_name) = delete_genre(id, &state.pool).await {
         let message = format!("Genre effacé : {}", deleted_name);
-        (flash.success(message), Redirect::to("/genres"))
+        (flash.success(message), Redirect::to("/api/genres"))
     } else {
         let message = "Genre pas effacé".to_string();
-        (flash.error(message), Redirect::to("/genres"))
+        (flash.error(message), Redirect::to("/api/genres"))
     }
 }
 
@@ -101,10 +102,11 @@ pub async fn delete_genre_hdl(
 ///
 /// Returns a HTML Page (askama template) or AppError
 ///
+#[debug_handler]
 pub async fn manage_genres_askama_hdl(
     State(state): State<AppState>,
     in_flash: IncomingFlashes,
-) -> Result<(IncomingFlashes, HandleGenresTemplate), AppError> {
+) -> Result<(IncomingFlashes, HandleGenresTemplate), MyAppError> {
     let flash = in_flash
         .into_iter()
         .map(|(level, text)| format!("{:?}: {}", level, text))
@@ -117,7 +119,14 @@ pub async fn manage_genres_askama_hdl(
     // get the values in the static vector of genres
     //let genres = get_static_vec_genres();
 
-    let genres = get_list_all_genres_one_cell(&state.pool).await;
+    let genres = get_list_all_genres_one_cell(&state.pool)
+        .await
+        .map_err(|_| {
+            MyAppError::new(
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "Error getting global list genres",
+            )
+        })?;
 
     let title = "Gestion des Genres".to_string();
     let flash = Some(flash);
@@ -137,11 +146,12 @@ pub async fn manage_genres_askama_hdl(
 ///
 /// Returns a HTML Page or AppError
 ///
+#[debug_handler]
 pub async fn list_genres_askama_hdl(//State(state): State<AppState>,
-) -> Result<ListGenresTemplate, AppError> {
+) -> Result<ListGenresTemplate, MyAppError> {
     //let list_genres = list_genres(&state.pool).await?;
     //let list_genres = get_static_vec_genres();
-    let list_genres = get_existing_list_genres_one_cell().await;
+    let list_genres = get_existing_list_genres_one_cell().await.unwrap();
     let template = ListGenresTemplate { list_genres };
     Ok(template)
 }
@@ -156,11 +166,12 @@ pub async fn list_genres_askama_hdl(//State(state): State<AppState>,
 ///
 /// returns list genre page with genre found
 ///
+#[debug_handler]
 pub async fn find_genre_by_name_hdl(
     State(state): State<AppState>,
     in_flash: IncomingFlashes,
     Form(form): Form<Payload>,
-) -> Result<HandleGenresTemplate, AppError> {
+) -> Result<HandleGenresTemplate, MyAppError> {
     let flash = in_flash
         .into_iter()
         .map(|(level, text)| format!("{:?}: {}", level, text))
@@ -173,7 +184,10 @@ pub async fn find_genre_by_name_hdl(
     //let genres = find_genre_by_name(name, &state.pool).await?;
     //set_static_vec_genres(find_genre_by_name(name, pool).await?);
     //let genres = get_static_vec_genres();
-    let genres = get_filtered_list_genres_once_cell(&state.pool, name).await;
+    let genres = get_filtered_list_genres_once_cell(&state.pool, name)
+        .await
+        .unwrap();
+
     let title = "Genre(s) trouvé(s)".to_string();
     let flash = Some(flash);
     //let flash = None;
@@ -190,19 +204,22 @@ pub async fn find_genre_by_name_hdl(
 /// Functions with OneCell crate
 ///
 ///
-pub async fn get_filtered_list_genres_once_cell(pool: &PgPool, genre_name: String) -> Vec<Genre> {
+pub async fn get_filtered_list_genres_once_cell(
+    pool: &PgPool,
+    genre_name: String,
+) -> Result<Vec<Genre>, MyAppError> {
     globals::once_cell::set_static_vec_genres(find_genre_by_name(genre_name, pool).await.unwrap());
     let genres = globals::once_cell::get_static_vec_genres();
-    genres
+    Ok(genres)
 }
 
-pub async fn get_list_all_genres_one_cell(pool: &PgPool) -> Vec<Genre> {
+pub async fn get_list_all_genres_one_cell(pool: &PgPool) -> Result<Vec<Genre>, MyAppError> {
     globals::once_cell::set_static_vec_genres(list_genres(pool).await.unwrap());
     let genres = globals::once_cell::get_static_vec_genres();
-    genres
+    Ok(genres)
 }
 
-pub async fn get_existing_list_genres_one_cell() -> Vec<Genre> {
+pub async fn get_existing_list_genres_one_cell() -> Result<Vec<Genre>, MyAppError> {
     let genres = globals::once_cell::get_static_vec_genres();
-    genres
+    Ok(genres)
 }

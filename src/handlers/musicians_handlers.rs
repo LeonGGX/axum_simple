@@ -5,7 +5,7 @@ use crate::db::musicians::{
     add_person, delete_person, find_persons_by_name_parts, /*find_persons_by_name_strict,*/
     list_persons, update_person,
 };
-use crate::errors::AppError;
+use crate::errors::MyAppError;
 use crate::globals;
 use crate::models::musician::Person;
 use crate::AppState;
@@ -18,6 +18,7 @@ use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
 //use std::ops::Deref;
 //use std::sync::{Mutex, RwLock};
+//use askama_axum::Error as AskamaError;
 
 /// the struct must be public ...
 #[derive(Serialize, Deserialize)]
@@ -40,9 +41,8 @@ pub struct Payload {
 /// '''
 #[debug_handler]
 pub async fn list_persons_askama_hdl(//State(state): State<AppState>,
-) -> Result<ListPersonsTemplate, AppError> {
-    //let list_persons = get_static_vec_persons();
-    let list_persons = get_existing_list_persons_one_cell().await;
+) -> Result<ListPersonsTemplate, MyAppError> {
+    let list_persons = get_existing_list_persons_one_cell().await.unwrap();
     let template = ListPersonsTemplate { list_persons };
     Ok(template)
 }
@@ -63,7 +63,7 @@ pub async fn list_persons_askama_hdl(//State(state): State<AppState>,
 pub async fn manage_persons_askama_hdl(
     State(state): State<AppState>,
     in_flash: IncomingFlashes,
-) -> Result<(IncomingFlashes, HandlePersonsTemplate), AppError> {
+) -> Result<(IncomingFlashes, HandlePersonsTemplate), MyAppError> {
     let title = "Gestion des Musiciens".to_string();
     let flash = in_flash
         .clone()
@@ -73,15 +73,7 @@ pub async fn manage_persons_askama_hdl(
         .join(", ");
     tracing::info!("flash : {}", flash);
 
-    // sets the data of the persons DB to the global Vec<Person>
-    //set_static_vec_persons(db::musicians::list_persons(&state.pool).await?);
-
-    // gets the static Vec<Person>
-    //let persons = get_static_vec_persons();
-
-    let persons = get_list_all_persons_one_cell(&state.pool).await;
-    //set_person_list(db::musicians::list_persons(&state.pool).await.unwrap());
-    //let persons = get_person_list().await;
+    let persons = get_list_all_persons_one_cell(&state.pool).await.unwrap();
 
     let flash = Some(flash);
     let template = HandlePersonsTemplate {
@@ -117,11 +109,11 @@ pub async fn create_person_hdl(
     if let Ok(person) = add_person(&state.pool, new_person.clone()).await {
         tracing::info!("person added : {:?}", person);
         let message = format!("Musicien ajouté : {}", new_person);
-        (flash.success(message), Redirect::to("/persons"))
+        (flash.success(message), Redirect::to("/api/persons"))
     } else {
         tracing::info!("error adding person");
         let message = "Musicien pas ajouté".to_string();
-        (flash.error(message), Redirect::to("/persons"))
+        (flash.error(message), Redirect::to("/api/persons"))
     }
 }
 
@@ -136,11 +128,11 @@ pub async fn update_person_hdl(
     if let Ok(person) = update_person(id, updated_person_name, &state.pool).await {
         tracing::info!("person modified : {:?}", person);
         let message = format!("Musicien modifié : {}", person.full_name);
-        (flash.success(message), Redirect::to("/persons"))
+        (flash.success(message), Redirect::to("/api/persons"))
     } else {
         tracing::info!("error modifying person");
         let message = "Musicien pas modifié".to_string();
-        (flash.error(message), Redirect::to("/persons"))
+        (flash.error(message), Redirect::to("/api/persons"))
     }
 }
 
@@ -152,10 +144,10 @@ pub async fn delete_person_hdl(
 ) -> (Flash, Redirect) {
     if let Ok(deleted_name) = delete_person(id, &state.pool).await {
         let message = format!("Musicien effacé : {}", deleted_name);
-        (flash.success(message), Redirect::to("/persons"))
+        (flash.success(message), Redirect::to("/api/persons"))
     } else {
         let message = "Erreur Musicien pas effacé".to_string();
-        (flash.error(message), Redirect::to("/persons"))
+        (flash.error(message), Redirect::to("/api/persons"))
     }
 }
 
@@ -177,16 +169,14 @@ pub async fn delete_person_hdl(
 ///
 /// returns manage persons page with persons found
 ///
+#[debug_handler]
 pub async fn find_person_by_name_hdl(
     State(state): State<AppState>,
     Form(form): Form<Payload>,
-) -> Result<HandlePersonsTemplate, AppError> {
+) -> Result<HandlePersonsTemplate, MyAppError> {
     let person_name_to_find = form.name;
-
-    //set_static_vec_persons(find_persons_by_name_parts(person_name_to_find, &state.pool).await?);
-    //let persons = get_static_vec_persons();
-
-    let persons = get_filtered_list_persons_once_cell(&state.pool, person_name_to_find).await;
+    let persons = get_filtered_list_persons_once_cell(&state.pool, person_name_to_find).await?;
+    //.unwrap();
     tracing::info!("liste personnes trouvées :{:?}", persons);
 
     let title = "Musicien(s) trouvé(s)".to_string();
@@ -198,6 +188,7 @@ pub async fn find_person_by_name_hdl(
     };
     Ok(template)
 }
+
 ///
 /// Functions with OneCell crate
 ///
@@ -205,21 +196,21 @@ pub async fn find_person_by_name_hdl(
 pub async fn get_filtered_list_persons_once_cell(
     pool: &PgPool,
     person_name: String,
-) -> Vec<Person> {
+) -> Result<Vec<Person>, MyAppError> {
     globals::once_cell::set_static_vec_persons(
-        find_persons_by_name_parts(person_name, pool).await.unwrap(),
+        find_persons_by_name_parts(person_name, pool).await?,
     );
     let persons = globals::once_cell::get_static_vec_persons();
-    persons
+    Ok(persons)
 }
 
-pub async fn get_list_all_persons_one_cell(pool: &PgPool) -> Vec<Person> {
+pub async fn get_list_all_persons_one_cell(pool: &PgPool) -> Result<Vec<Person>, MyAppError> {
     globals::once_cell::set_static_vec_persons(list_persons(pool).await.unwrap());
     let persons = globals::once_cell::get_static_vec_persons();
-    persons
+    Ok(persons)
 }
 
-pub async fn get_existing_list_persons_one_cell() -> Vec<Person> {
+pub async fn get_existing_list_persons_one_cell() -> Result<Vec<Person>, MyAppError> {
     let persons = globals::once_cell::get_static_vec_persons();
-    persons
+    Ok(persons)
 }
