@@ -1,17 +1,24 @@
 //! src/askama.rs
 
 use crate::models::genre::Genre;
+use crate::models::musician::Person;
 use crate::models::partition::ShowPartition;
-use crate::Person;
+use crate::models::user::FilteredUser;
 use askama::Template;
-use axum::http::{StatusCode, Uri};
-use axum::response::{Html, IntoResponse, Response};
+use axum::http::Uri;
 
 #[derive(Template)] // this will generate the code...
 #[template(path = "hello.html")]
 pub struct HelloTemplate {
     pub title: String,
     pub name: String,
+}
+
+#[derive(Template)] // this will generate the code...
+#[template(path = "error.html")]
+pub struct ErrorTemplate {
+    pub title: String,
+    pub error_message: String,
 }
 
 ///
@@ -24,6 +31,19 @@ pub struct HelloTemplate {
 #[derive(Template)]
 #[template(path = "login.html")]
 pub struct LoginTemplate {
+    pub title: String,
+    pub flash: Option<String>,
+}
+
+#[derive(Template)]
+#[template(path = "logout.html")]
+pub struct LogoutTemplate {
+    pub title: String,
+}
+
+#[derive(Template)]
+#[template(path = "sign_up.html")]
+pub struct SignupTemplate {
     pub title: String,
     pub flash: Option<String>,
 }
@@ -53,6 +73,14 @@ pub struct ListGenresTemplate {
 pub struct ListPartitionsTemplate {
     pub title: String,
     pub list_partitions: Vec<ShowPartition>,
+}
+
+#[derive(Template)] // this will generate the code...
+#[template(path = "list_users.html")]
+pub struct ListUsersTemplate {
+    pub title: String,
+    pub users: Vec<FilteredUser>,
+    pub flash: Option<String>,
 }
 
 //*****************************************************************************
@@ -93,12 +121,19 @@ pub struct HandlePartitionsTemplate {
 }
 
 //*************************************************************************
-// Template for the main page, starting the application
+// Template for the start page, starting the application
 //
 #[derive(Template)] // this will generate the code...
 #[template(path = "start.html")]
 pub struct StartTemplate {
     pub title: String,
+}
+
+#[derive(Template)] // this will generate the code...
+#[template(path = "welcome.html")]
+pub struct WelcomeTemplate {
+    pub title: String,
+    pub flash: Option<String>,
 }
 
 //**************************************************************************
@@ -121,27 +156,20 @@ pub struct AboutTemplate {
 #[template(path = "debug.html")]
 pub struct DebugTemplate {
     pub title: String,
-    //pub flash: Option<String>,
     pub cookies: Vec<String>,
     pub str_auth: String,
-    pub session_user: String,
-    pub session_role: String,
+    //pub session_user: Option<String>,
+    //pub session_role: Option<String>,
 }
 
-pub struct HtmlTemplate<T>(pub T);
-
-impl<T> IntoResponse for HtmlTemplate<T>
-where
-    T: Template,
-{
-    fn into_response(self) -> Response {
-        match self.0.render() {
-            Ok(html) => Html(html).into_response(),
-            Err(err) => (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                format!("Failed to render template. Error: {:?}", err),
-            )
-                .into_response(),
-        }
-    }
+#[derive(Template)] // this will generate the code...
+#[template(path = "debug_two.html")]
+pub struct DebugTemplateTwo {
+    pub title: String,
+    pub auth_token: Option<String>,
+    pub refresh_token: Option<String>,
+    pub logged_in: Option<String>,
+    //pub str_auth: String,
+    //pub session_user: Option<String>,
+    //pub session_role: Option<String>,
 }
