@@ -1,10 +1,12 @@
 //! src/db/partitions.rs
 
+use axum::http::StatusCode;
 use sqlx::postgres::PgRow;
 use sqlx::{PgPool, Row};
 
 use crate::db::genres::find_genre_by_name;
 use crate::db::musicians::find_persons_by_name_strict;
+use crate::errors::MyAppError;
 use crate::models::partition::{Partition, ShowPartition};
 
 //*******************************************************************************************
@@ -15,7 +17,7 @@ pub async fn add_partition(
     person_name: String,
     genre_name: String,
     pool: &PgPool,
-) -> sqlx::Result<Partition> {
+) -> Result<Partition, MyAppError> {
     let person_id: i32;
     let genre_id: i32;
 
@@ -23,14 +25,17 @@ pub async fn add_partition(
         tracing::info!("from db::add_partition : personne : {:?}", person);
         person_id = person.id;
     } else {
-        return Err(sqlx::Error::RowNotFound);
+        return Err(MyAppError::new(
+            StatusCode::NOT_FOUND,
+            "Musicien pas trouvé",
+        ));
     };
 
     if let Ok(genre) = find_genre_by_name(genre_name, &pool).await {
         tracing::info!("from db::add_partition : genre : {:?}", genre);
         genre_id = genre[0].id;
     } else {
-        return Err(sqlx::Error::RowNotFound);
+        return Err(MyAppError::new(StatusCode::NOT_FOUND, "Genre pas trouvé"));
     };
 
     let partition = sqlx::query(
@@ -61,7 +66,7 @@ pub async fn update_partition(
     person_id: i32,
     genre_id: i32,
     pool: &PgPool,
-) -> sqlx::Result<Partition> {
+) -> Result<Partition, MyAppError> {
     let row = sqlx::query!(
         r#"
         UPDATE partitions
@@ -85,7 +90,7 @@ pub async fn update_partition(
     Ok(partition)
 }
 
-pub async fn delete_partition(id: i32, pool: &PgPool) -> sqlx::Result<String> {
+pub async fn delete_partition(id: i32, pool: &PgPool) -> Result<String, MyAppError> {
     let partition = find_partition_by_id(id.clone(), pool).await?;
     let name = partition.title;
 
@@ -108,7 +113,7 @@ pub async fn delete_partition(id: i32, pool: &PgPool) -> sqlx::Result<String> {
 /// under the form of a Vec<ShowPartition>
 /// or a sqlx Error
 ///
-pub async fn list_show_partitions(pool: &PgPool) -> anyhow::Result<Vec<ShowPartition>> {
+pub async fn list_show_partitions(pool: &PgPool) -> Result<Vec<ShowPartition>, MyAppError> {
     let rep: Vec<ShowPartition> = sqlx::query(
         "
     SELECT partitions.id, partitions.title, persons.full_name, genres.name
@@ -138,7 +143,7 @@ pub async fn list_show_partitions(pool: &PgPool) -> anyhow::Result<Vec<ShowParti
 pub async fn show_one_partition(
     partition: Partition,
     pool: &PgPool,
-) -> sqlx::Result<ShowPartition> {
+) -> Result<ShowPartition, MyAppError> {
     let show_partition = sqlx::query(
         "
     SELECT partitions.id, partitions.title, persons.full_name, genres.name
@@ -163,7 +168,7 @@ pub async fn show_one_partition(
     Ok(show_partition)
 }
 
-pub async fn find_partition_by_id(id: i32, pool: &PgPool) -> sqlx::Result<Partition> {
+pub async fn find_partition_by_id(id: i32, pool: &PgPool) -> Result<Partition, MyAppError> {
     let partition = sqlx::query("SELECT * FROM partitions WHERE id = $1;")
         .bind(id)
         .map(|row: PgRow| Partition {
@@ -186,7 +191,10 @@ pub async fn find_partition_by_id(id: i32, pool: &PgPool) -> sqlx::Result<Partit
 /// par les lettres entrées.
 /// Permet une recherche lorsqu'on ne connaît pas le titre exact.
 ///
-pub async fn find_partition_by_title(title: String, pool: &PgPool) -> sqlx::Result<Vec<Partition>> {
+pub async fn find_partition_by_title(
+    title: String,
+    pool: &PgPool,
+) -> Result<Vec<Partition>, MyAppError> {
     let mut part_title = title.clone();
     part_title.push('%');
 
@@ -207,7 +215,7 @@ pub async fn find_partition_by_title(title: String, pool: &PgPool) -> sqlx::Resu
 pub async fn find_partition_by_genre(
     genre_name: String,
     pool: &PgPool,
-) -> sqlx::Result<Vec<Partition>> {
+) -> Result<Vec<Partition>, MyAppError> {
     let genre = find_genre_by_name(genre_name.clone(), pool).await?;
     let genre_id = genre[0].id;
 
@@ -233,10 +241,8 @@ pub async fn find_partition_by_genre(
 pub async fn find_partition_by_author(
     author_name: String,
     pool: &PgPool,
-) -> sqlx::Result<Vec<Partition>> {
+) -> Result<Vec<Partition>, MyAppError> {
     let author = find_persons_by_name_strict(author_name.clone(), pool).await?;
-    //let author_id = author.id;
-
     let partitions = sqlx::query(
         "SELECT * FROM partitions \
         WHERE person_id = $1\
@@ -259,14 +265,15 @@ pub async fn find_partition_by_author(
     Ok(partitions)
 }
 
+#[allow(dead_code)]
 pub async fn vec_showpartitions_from_vec_partitions(
     partitions: Vec<Partition>,
     pool: &PgPool,
-) -> Vec<ShowPartition> {
+) -> Result<Vec<ShowPartition>, MyAppError> {
     let mut show_partitions: Vec<ShowPartition> = Vec::new();
     for partition in partitions {
-        let one_show_partition = show_one_partition(partition, pool).await.unwrap();
+        let one_show_partition = show_one_partition(partition, pool).await?;
         show_partitions.push(one_show_partition);
     }
-    show_partitions
+    Ok(show_partitions)
 }

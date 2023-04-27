@@ -1,5 +1,6 @@
 //! src/db/genres
 
+use crate::errors::MyAppError;
 use sqlx::postgres::PgRow;
 use sqlx::{PgPool, Row};
 
@@ -9,7 +10,7 @@ use crate::models::genre::Genre;
 // CRUD Operations on genres
 //
 
-pub async fn add_genre(pool: &PgPool, genre_name: String) -> sqlx::Result<Genre> {
+pub async fn add_genre(pool: &PgPool, genre_name: String) -> Result<Genre, MyAppError> {
     let mut tx = pool.begin().await?;
     let rec = sqlx::query(
         "INSERT INTO genres (name)
@@ -29,7 +30,7 @@ pub async fn add_genre(pool: &PgPool, genre_name: String) -> sqlx::Result<Genre>
     Ok(rec)
 }
 
-pub async fn update_genre(id: i32, genre_name: String, pool: &PgPool) -> sqlx::Result<Genre> {
+pub async fn update_genre(id: i32, genre_name: String, pool: &PgPool) -> Result<Genre, MyAppError> {
     let genre = sqlx::query("UPDATE genres SET name = $1 WHERE id = $2 RETURNING id, name;")
         .bind(&genre_name)
         .bind(id)
@@ -44,7 +45,7 @@ pub async fn update_genre(id: i32, genre_name: String, pool: &PgPool) -> sqlx::R
     Ok(genre)
 }
 
-pub async fn delete_genre(id: i32, pool: &PgPool) -> sqlx::Result<String> {
+pub async fn delete_genre(id: i32, pool: &PgPool) -> Result<String, MyAppError> {
     let genre = find_genre_by_id(id.clone(), pool).await?;
     let name = genre.name;
 
@@ -63,7 +64,7 @@ pub async fn delete_genre(id: i32, pool: &PgPool) -> sqlx::Result<String> {
 /// under the form of a Vec<Genre>
 /// or a sqlx Error
 ///
-pub async fn list_genres(pool: &PgPool) -> anyhow::Result<Vec<Genre>> {
+pub async fn list_genres(pool: &PgPool) -> Result<Vec<Genre>, MyAppError> {
     let genres: Vec<Genre> = sqlx::query("SELECT id, name FROM genres ORDER BY name;")
         .map(|row: PgRow| Genre {
             id: row.get(0),
@@ -74,7 +75,7 @@ pub async fn list_genres(pool: &PgPool) -> anyhow::Result<Vec<Genre>> {
     Ok(genres)
 }
 
-pub async fn find_genre_by_id(id: i32, pool: &PgPool) -> sqlx::Result<Genre> {
+pub async fn find_genre_by_id(id: i32, pool: &PgPool) -> Result<Genre, MyAppError> {
     let genre = sqlx::query("SELECT * FROM genres WHERE id = $1;")
         .bind(id)
         .map(|row: PgRow| Genre {
@@ -88,7 +89,7 @@ pub async fn find_genre_by_id(id: i32, pool: &PgPool) -> sqlx::Result<Genre> {
     Ok(genre)
 }
 
-pub async fn find_genre_by_name(name: String, pool: &PgPool) -> sqlx::Result<Vec<Genre>> {
+pub async fn find_genre_by_name(name: String, pool: &PgPool) -> Result<Vec<Genre>, MyAppError> {
     let mut part_name = name.clone();
     part_name.push('%');
 

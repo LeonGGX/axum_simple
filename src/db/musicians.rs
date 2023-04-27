@@ -1,5 +1,6 @@
 //! src/db/musicians.rs
 
+use crate::errors::MyAppError;
 use sqlx::postgres::PgRow;
 use sqlx::{PgPool, Row};
 
@@ -15,7 +16,7 @@ use crate::models::musician::Person;
 /// returns a Person or sqlx Error
 ///
 #[allow(dead_code)]
-pub async fn add_person(pool: &PgPool, full_name: String) -> sqlx::Result<Person> {
+pub async fn add_person(pool: &PgPool, full_name: String) -> Result<Person, MyAppError> {
     let person = sqlx::query_as!(
         Person,
         r#"
@@ -33,7 +34,11 @@ pub async fn add_person(pool: &PgPool, full_name: String) -> sqlx::Result<Person
 }
 
 #[allow(dead_code)]
-pub async fn update_person(id: i32, person_name: String, pool: &PgPool) -> sqlx::Result<Person> {
+pub async fn update_person(
+    id: i32,
+    person_name: String,
+    pool: &PgPool,
+) -> Result<Person, MyAppError> {
     let person =
         sqlx::query("UPDATE persons SET full_name = $1 WHERE id = $2 RETURNING id, full_name;")
             .bind(&person_name)
@@ -50,7 +55,7 @@ pub async fn update_person(id: i32, person_name: String, pool: &PgPool) -> sqlx:
 }
 
 #[allow(dead_code)]
-pub async fn delete_person(id: i32, pool: &PgPool) -> sqlx::Result<String> {
+pub async fn delete_person(id: i32, pool: &PgPool) -> Result<String, MyAppError> {
     let pers = find_person_by_id(id, pool).await?;
     let name = pers.full_name;
 
@@ -73,7 +78,7 @@ pub async fn delete_person(id: i32, pool: &PgPool) -> sqlx::Result<String> {
 /// used as help function for others
 ///
 #[allow(dead_code)]
-pub async fn find_person_by_id(id: i32, pool: &PgPool) -> sqlx::Result<Person> {
+pub async fn find_person_by_id(id: i32, pool: &PgPool) -> Result<Person, MyAppError> {
     let person = sqlx::query("SELECT * FROM persons WHERE id = $1;")
         .bind(id)
         .map(|row: PgRow| Person {
@@ -94,7 +99,10 @@ pub async fn find_person_by_id(id: i32, pool: &PgPool) -> sqlx::Result<Person> {
 /// The full name should be introduced.
 ///
 #[allow(dead_code)]
-pub async fn find_persons_by_name_strict(full_name: String, pool: &PgPool) -> sqlx::Result<Person> {
+pub async fn find_persons_by_name_strict(
+    full_name: String,
+    pool: &PgPool,
+) -> Result<Person, MyAppError> {
     let select_query = sqlx::query(
         "SELECT * FROM persons \
                          WHERE full_name LIKE $1",
@@ -124,7 +132,7 @@ pub async fn find_persons_by_name_strict(full_name: String, pool: &PgPool) -> sq
 pub async fn find_persons_by_name_parts(
     full_name: String,
     pool: &PgPool,
-) -> sqlx::Result<Vec<Person>> {
+) -> Result<Vec<Person>, MyAppError> {
     let mut name = full_name.clone();
     name.push('%');
 
@@ -150,7 +158,7 @@ pub async fn find_persons_by_name_parts(
 /// or a sqlx Error
 ///
 #[allow(dead_code)]
-pub async fn list_persons(pool: &PgPool) -> sqlx::Result<Vec<Person>> {
+pub async fn list_persons(pool: &PgPool) -> Result<Vec<Person>, MyAppError> {
     //let mut persons: Vec<Person> = Vec::new();
     let recs = sqlx::query("SELECT id, full_name FROM persons ORDER BY full_name;")
         .map(|row: PgRow| Person {
