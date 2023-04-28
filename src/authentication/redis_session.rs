@@ -12,7 +12,7 @@ pub async fn save_token_data_to_redis(
     token_details: &TokenDetails,
     max_age: i64,
 ) -> Result<(), MyAppError> {
-    let mut redis_client = state
+    let redis_client = state
         .redis_client
         .get_async_connection()
         .await
