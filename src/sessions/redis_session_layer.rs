@@ -1,4 +1,4 @@
-//! src/sessions/redis_sessions
+//! src/sessions/redis_sessions.rs
 
 use async_redis_session::RedisSessionStore;
 use axum::http::StatusCode;
