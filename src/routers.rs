@@ -22,13 +22,12 @@ use crate::handlers::utils_handlers::{
     welcome_hdl,
 };
 use crate::main_response_mapper;
-use crate::print_req_res::{print_cookies_askama, print_req_cookies_askama};
+use crate::print_req_res::print_cookies_askama;
 use crate::AppState;
 use axum::extract::MatchedPath;
 use axum::http::Request;
 use axum::routing::{get, post};
 use axum::{middleware, Router};
-//use std::sync::Arc;
 use tower::ServiceBuilder;
 use tower_cookies::CookieManagerLayer;
 use tower_http::trace::TraceLayer;
@@ -50,7 +49,7 @@ pub fn create_routers(app_state: AppState) -> Router {
     let debug_routes = Router::new()
         .route(
             "/cookies",
-            get(print_cookies_askama),
+            get(print_cookies_askama /*print_req_cookies_askama*/),
         )
         //.route_layer(middleware::from_fn_with_state(
         //app_state.clone(),
@@ -62,7 +61,8 @@ pub fn create_routers(app_state: AppState) -> Router {
     // the route "/login" correspond to "/auth/login"
     let auth_routes = Router::new()
         .route("/login", get(login_form_askama_hdl).post(post_login_hdl))
-        .route("/signup", get(signup_form_askama_hdl).post(post_signup_hdl))        
+        .route("/signup", get(signup_form_askama_hdl).post(post_signup_hdl))
+        //.route("/logout", post(logout_handler))
         .route("/users", get(list_users_askama_hdl));
 
     // A router with state : a PgPool is necessary and is to be found in the state
@@ -98,12 +98,6 @@ pub fn create_routers(app_state: AppState) -> Router {
     let welcome_route = Router::new().route("/", get(welcome_hdl));
 
     // api routes only for logged users
-    //
-    // the auth_layer::auth function restricts the api_routes to logged users
-    // it uses the state so it needs middleware::from_fn_with_state
-    //
-    // with_state (containing a clone of the app_state) must be added at the end.
-    //
     let api_routes = Router::new()
         .nest("/about", about_route)
         .nest("/welcome", welcome_route)
@@ -144,7 +138,8 @@ pub fn create_routers(app_state: AppState) -> Router {
                             some_other_field = tracing::field::Empty,
                         )
                     }),
-                )                
+                )
+                .layer(axum::middleware::map_response(main_response_mapper)),
         )
         .route("/favicon.png", get(favicon))
         .with_state(app_state.clone())
