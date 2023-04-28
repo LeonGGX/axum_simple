@@ -1,8 +1,5 @@
 //! src/handlers/signup_handlers.rs
 
-use crate::askama::askama_tpl::SignupTemplate;
-//use crate::errors::MyAppError;
-use crate::AppState;
 use axum::extract::rejection::FormRejection;
 use axum::extract::State;
 use axum::http::{Request, StatusCode};
@@ -10,20 +7,17 @@ use axum::response::Redirect;
 use axum::{async_trait, debug_handler, Form};
 use axum_core::extract::FromRequest;
 use axum_core::response::{IntoResponse, Response};
-use axum_extra::extract::cookie::SameSite;
-use axum_extra::extract::{cookie::Cookie, CookieJar};
+use axum_extra::extract::CookieJar;
 use axum_flash::{Flash, IncomingFlashes};
-//use axum_sessions::extractors::WritableSession;
 use serde::{de::DeserializeOwned, Deserialize};
 use thiserror::Error;
 use validator::{Validate, ValidationError};
 
-use crate::authentication::auth_utils::{generate_token, hash_password};
-//use crate::authentication::jwt::TokenClaims;
-use crate::db::users::{add_user, find_user_by_email /*find_user_by_name*/};
-//use crate::handlers::login_handlers::LoginFormError::ValidationError;
+use crate::askama::askama_tpl::SignupTemplate;
+use crate::authentication::auth_utils::hash_password;
+use crate::db::users::{add_user, find_user_by_email};
 use crate::models::user::NewUser;
-//use crate::sessions::useful_sessions::MyWritableSession;
+use crate::AppState;
 
 // # Handler
 ///
