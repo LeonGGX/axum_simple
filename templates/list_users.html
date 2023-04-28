@@ -17,6 +17,7 @@
             <th>eMail</th>
             <th>Rôle</th>
             <th>Vérifié</th>
+            <th>Date de création</th>
         </tr>
         </thead>
         <tbody>
@@ -26,6 +27,7 @@
                 <td>{{ user.email }}</td>
                 <td>{{ user.role }}</td>
                 <td>{{ user.verified }}</td>
+                <td>{{user.created_at}}</td>
             </tr>
             {% endfor %}
         </tbody>
