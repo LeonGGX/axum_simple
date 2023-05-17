@@ -21,7 +21,7 @@ pub async fn add_partition(
     let person_id: i32;
     let genre_id: i32;
 
-    if let Ok(person) = find_persons_by_name_strict(person_name, &pool).await {
+    if let Ok(person) = find_persons_by_name_strict(person_name, pool).await {
         tracing::info!("from db::add_partition : personne : {:?}", person);
         person_id = person.id;
     } else {
@@ -31,7 +31,7 @@ pub async fn add_partition(
         ));
     };
 
-    if let Ok(genre) = find_genre_by_name(genre_name, &pool).await {
+    if let Ok(genre) = find_genre_by_name(genre_name, pool).await {
         tracing::info!("from db::add_partition : genre : {:?}", genre);
         genre_id = genre[0].id;
     } else {
@@ -44,8 +44,8 @@ pub async fn add_partition(
                 RETURNING id, title, person_id, genre_id;",
     )
     .bind(&title)
-    .bind(&person_id)
-    .bind(&genre_id)
+    .bind(person_id)
+    .bind(genre_id)
     .map(|row: PgRow| Partition {
         id: row.get(0),
         title: row.get(1),
@@ -91,7 +91,7 @@ pub async fn update_partition(
 }
 
 pub async fn delete_partition(id: i32, pool: &PgPool) -> Result<String, MyAppError> {
-    let partition = find_partition_by_id(id.clone(), pool).await?;
+    let partition = find_partition_by_id(id, pool).await?;
     let name = partition.title;
 
     let _res = sqlx::query("DELETE FROM partitions WHERE id = $1")

@@ -46,7 +46,7 @@ pub async fn update_genre(id: i32, genre_name: String, pool: &PgPool) -> Result<
 }
 
 pub async fn delete_genre(id: i32, pool: &PgPool) -> Result<String, MyAppError> {
-    let genre = find_genre_by_id(id.clone(), pool).await?;
+    let genre = find_genre_by_id(id, pool).await?;
     let name = genre.name;
 
     let _res = sqlx::query("DELETE FROM genres WHERE id = $1")
