@@ -49,16 +49,17 @@ async fn main() -> anyhow::Result<()> {
         .init();
     //*****************************************************************
     // Getting configuration data
+    // using the Config struct from config.rs
     dotenvy::dotenv().ok();
     let env = Config::init();
 
     //*****************************************************
-    // Postgresql db pool initiation -- uses sqlx
+    // Opening DB connections (Postgresql and Redis)
 
-    // pool creation
+    // creating Postgresql pool from sqlx
     let pool = create_pg_pool(env.clone().database_url).await?;
 
-    // redis client creation
+    // creating redis client
     let redis_client = create_redis_client(env.clone().redis_url).await?;
 
     //*****************************************************
@@ -70,13 +71,16 @@ async fn main() -> anyhow::Result<()> {
 
     //******************************************************
     // axum-flash
-    // comes from tower_cookies::Key
+    // vient de tower_cookies::Key
     let key = Key::generate();
     let flash_config = axum_flash::Config::new(key).use_secure_cookies(false);
 
     //*******************************************************
     // Our application state
-    // It contains the DB pool and a configuration for flash cookies needed by axum_flash
+    // It contains the DB pool,
+    // a configuration for flash cookies needed by axum_flash (flash_config),
+    // the configuration data (env)
+    // a redis client used for the session management,
     let state = AppState {
         pool,
         flash_config,
@@ -89,8 +93,9 @@ async fn main() -> anyhow::Result<()> {
     let app = create_routers(state);
 
     let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
-    tracing::debug!("listening on {}", addr);
+
     println!("🚀 Server started successfully");
+    println!("-- Listening on 127.0.0.1:3000");
 
     axum::Server::bind(&addr)
         .serve(app.into_make_service())
@@ -99,16 +104,21 @@ async fn main() -> anyhow::Result<()> {
     Ok(())
 }
 
+async fn main_response_mapper<B>(res: Response<B>) -> Response<B> {
+    println!("->> {:<12} - main_response_mapper", "RES_MAPPER");
+    println!();
+    res
+}
 
 /// # Application State
 /// passed to the routers where needed with _router.with_state(state)_
 /// and can be used by the handlers   
 ///
 /// ## Fields
-/// - PgPool to connect to the PostgresQL DB with sqlx
+/// - PgPool to connect to the DB
 /// - flash_config needed by axum_flash
-/// - env the config elements (e..g. token keys, ... from .env)
-/// - redis_client a Client for the redis server used for sessions
+/// - env : data from the config file
+/// - redis_client : the redis client for the session
 ///
 #[derive(Clone, FromRef)]
 pub struct AppState {

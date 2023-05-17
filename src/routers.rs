@@ -5,6 +5,7 @@ use crate::handlers::genres_handlers::{
     create_genre_hdl, delete_genre_hdl, find_genre_by_name_hdl, list_genres_askama_hdl,
     manage_genres_askama_hdl, update_genre_hdl,
 };
+use crate::handlers::get_me_hld::get_me_hdl;
 use crate::handlers::login_handlers::{login_form_askama_hdl, post_login_hdl};
 use crate::handlers::logout_handlers::{logout_handler, logout_page};
 use crate::handlers::musicians_handlers::{
@@ -33,12 +34,20 @@ use tower_cookies::CookieManagerLayer;
 use tower_http::trace::TraceLayer;
 use tracing::info_span;
 
+///
+/// # Creates all the site routes
+///
+/// Returns a Router (with no other arguement)    
+/// needs the AppState for some routes    
+/// The main routes are 'start routes', 'api routes', 'auth routes', 'debug routes'    
+///
 pub fn create_routers(app_state: AppState) -> Router {
     // the start page :
     let start_route = Router::new().route("/", get(start_hdl));
 
     // A simple router to the about page
     // Attention the path must be "/" !!!
+    // because the route will be nested in api routes
     let about_route = Router::new().route("/", get(about_hdl));
 
     // A simple router to say hello
@@ -105,6 +114,7 @@ pub fn create_routers(app_state: AppState) -> Router {
         .nest("/genres", genres_routes)
         .nest("/partitions", partitions_routes)
         .route("/logout", get(logout_page).post(logout_handler))
+        .route("/me", get(get_me_hdl))
         .route_layer(middleware::from_fn_with_state(
             app_state.clone(),
             auth_layer::auth,
@@ -119,7 +129,8 @@ pub fn create_routers(app_state: AppState) -> Router {
         .nest("/api", api_routes)
         .nest("/debug", debug_routes)
         .nest("/hello", hello_routes)
-        .with_state(app_state.clone())
+        .route("/favicon.png", get(favicon))
+        //.with_state(app_state.clone())
         .fallback(handler_404)
         .layer(
             ServiceBuilder::new()
@@ -141,6 +152,5 @@ pub fn create_routers(app_state: AppState) -> Router {
                 )
                 .layer(axum::middleware::map_response(main_response_mapper)),
         )
-        .route("/favicon.png", get(favicon))
-        .with_state(app_state.clone())
+        .with_state(app_state)
 }

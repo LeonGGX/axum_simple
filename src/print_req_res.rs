@@ -141,8 +141,10 @@ pub async fn print_cookies_askama<B>(cookie_jar: CookieJar, req: Request<B>) -> 
                 .get(header::AUTHORIZATION)
                 .and_then(|auth_header| auth_header.to_str().ok())
                 .and_then(|auth_value| {
-                    if auth_value.starts_with("Bearer ") {
-                        Some(auth_value[7..].to_owned())
+                    //if auth_value.starts_with("Bearer ") {
+                    //Some(auth_value[7..].to_owned())
+                    if let Some(auth_value) = auth_value.strip_prefix("Bearer ") {
+                        Some(auth_value.to_owned())
                     } else {
                         None
                     }
@@ -165,11 +167,10 @@ pub async fn print_cookies_askama<B>(cookie_jar: CookieJar, req: Request<B>) -> 
         });
 
     let title = "Liste des Cookies".to_string();
-    let template = DebugTemplateTwo {
+    DebugTemplateTwo {
         title,
         auth_token,
         refresh_token,
         logged_in,
-    };
-    template
+    }
 }
