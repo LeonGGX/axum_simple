@@ -41,7 +41,7 @@ pub async fn signup_form_askama_hdl(
     */
     let mut flash = String::new();
     for (level, message) in &in_flash {
-        flash.push_str(&*format!("{:?}: {}", level, message))
+        flash.push_str(&format!("{:?}: {}", level, message))
     }
     let title = "Signup - S'inscrire comme utilisateur".to_string();
     let flash = Some(flash);
@@ -52,7 +52,6 @@ pub async fn signup_form_askama_hdl(
 #[debug_handler]
 pub async fn post_signup_hdl(
     State(state): State<AppState>,
-    //mut session: WritableSession,
     flash: Flash,
     cookie_jar: CookieJar,
     ValidatedSignupForm(input): ValidatedSignupForm<CreateSignupInput>,
@@ -74,68 +73,48 @@ pub async fn post_signup_hdl(
 
     // check if the user already exists
     // if so signup terminated and return to login
-    if let Ok(user) = find_user_by_email(new_user.email.clone(), &state.pool).await {
-        let message = format!("L'Utilisateur {} existe déjà !", user.name);
+    if let Ok(opt_user) = find_user_by_email(new_user.email.clone(), &state.pool).await {
+        if opt_user.is_some() {
+            let user = opt_user.unwrap();
+            // if the user is found (option is some), we stop the signup process
+            let message = format!("L'Utilisateur {} existe déjà !", user.name);
+            return (
+                cookie_jar,
+                flash.error(message),
+                Redirect::to("/auth/login"),
+            );
+        } else {
+            // the user is not in the DB : the Option is none
+            // we add the user to the DB and invite him to log in
+            return match add_user(&new_user, &state.pool).await {
+                Ok(user) => {
+                    let message = format!(
+                        "Bonjour {}, vous êtes enregistré, prière de vous logger",
+                        user.name
+                    );
+                    (
+                        cookie_jar,
+                        flash.success(message),
+                        Redirect::to("/auth/login"),
+                    )
+                }
+                Err(e) => {
+                    let message = format!("vous n'êtes pas enregistré {:?}!", e);
+                    (
+                        cookie_jar,
+                        flash.error(message),
+                        Redirect::to("/auth/signup"),
+                    )
+                }
+            };
+        };
+    } else {
+        let message = "DataBase Error".to_string();
         (
             cookie_jar,
             flash.error(message),
             Redirect::to("/auth/signup"),
         )
-    } else {
-        // if the user doesn't exist we add him to the DB
-        // and invite him to log in
-        match add_user(&new_user, &state.pool).await {
-            Ok(user) => {
-                let message = format!(
-                    "Bonjour {}, vous êtes enregistré, prière de vous logger",
-                    user.name
-                );
-                (
-                    cookie_jar,
-                    flash.success(message),
-                    Redirect::to("/auth/login"),
-                )
-                /*
-                let user_clone = user.clone();
-                let auth_token = generate_token(
-                    user_clone.id,
-                    state.env.access_token_max_age,
-                    state.env.access_token_private_key.to_owned(),
-                )
-                .unwrap();
-                let cloned_token = auth_token.token.clone();
-                println!(
-                    "->> {:<12}  - post_signup_hdl : {cloned_token:?}",
-                    "token created"
-                );
-
-                let cookie =
-                    Cookie::build("auth_token", auth_token.token.clone().unwrap_or_default())
-                        .path("/")
-                        .max_age(::time::Duration::minutes(
-                            state.env.access_token_max_age * 60,
-                        ))
-                        .same_site(SameSite::Lax)
-                        .http_only(true)
-                        .finish();
-                let cookiejar = cookie_jar.add(cookie);
-                let message = format!("Bonjour {}, vous êtes enregistré et loggé", user.name);
-                (
-                    cookiejar,
-                    flash.success(message),
-                    Redirect::to("/api/welcome"),
-                )
-                 */
-            }
-            Err(e) => {
-                let message = format!("vous n'êtes pas enregistré {:?}!", e);
-                (
-                    cookie_jar,
-                    flash.error(message),
-                    Redirect::to("/auth/signup"),
-                )
-            }
-        }
     }
 }
 
@@ -155,7 +134,7 @@ pub fn validate_username(s: &str) -> Result<(), ValidationError> {
             "Le nom d'utilisateur est vide ou contient des caractères interdits",
         ));
     } else {
-        return Ok(());
+        Ok(())
     }
 }
 

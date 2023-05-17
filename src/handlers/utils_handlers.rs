@@ -63,7 +63,7 @@ pub async fn welcome_hdl(
 ) -> Result<(IncomingFlashes, WelcomeTemplate), MyAppError> {
     let mut flash = String::new();
     for (level, message) in &in_flash {
-        flash.push_str(&*format!("{:?}: {}", level, message))
+        flash.push_str(&format!("{:?}: {}", level, message))
     }
     let flash = Some(flash);
     let title = "Commencer à travailler".to_string();
@@ -74,8 +74,7 @@ pub async fn welcome_hdl(
 #[debug_handler]
 pub async fn hello_name_askama_hdl(Path(name): Path<String>) -> impl IntoResponse {
     let title = "Askama".to_string();
-    let template = HelloTemplate { title, name };
-    template
+    HelloTemplate { title, name }
 }
 
 pub async fn favicon() -> impl IntoResponse {
@@ -91,10 +90,9 @@ pub async fn list_users_askama_hdl(State(state): State<AppState>) -> impl IntoRe
     let title = "Liste des Utilisateurs".to_string();
     let users = list_users(&state.pool).await.unwrap();
     let flash = None;
-    let template = ListUsersTemplate {
+    ListUsersTemplate {
         title,
         users,
         flash,
-    };
-    template
+    }
 }

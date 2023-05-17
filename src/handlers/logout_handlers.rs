@@ -17,10 +17,16 @@ use tower_cookies::cookie::time;
 #[debug_handler]
 pub async fn logout_page() -> LogoutTemplate {
     let title = "Se déconnecter".to_string();
-    let template = LogoutTemplate { title };
-    template
+    LogoutTemplate { title }
 }
 
+///
+/// # Handler
+/// Logs the current user out    
+/// Deletes all identification cookies (auth_token, refresh_token)    
+/// Sets the logged_in cookie to false   
+/// Deletes data from redis session   
+///
 #[debug_handler]
 pub async fn logout_handler(
     State(state): State<AppState>,
@@ -66,20 +72,22 @@ pub async fn logout_handler(
                 format!("Error Redis: {e}"),
             )
         })?;
+    // brings auth_token to null
     let access_cookie = Cookie::build("auth_token", "")
         .path("/")
         .max_age(time::Duration::minutes(-1))
         .same_site(SameSite::Lax)
         .http_only(true)
         .finish();
+    // brings refresh_token to null
     let refresh_cookie = Cookie::build("refresh_token", "")
         .path("/")
         .max_age(time::Duration::minutes(-1))
         .same_site(SameSite::Lax)
         .http_only(true)
         .finish();
-
-    let logged_in_cookie = Cookie::build("logged_in", "true")
+    // brings logged_in cookie to false
+    let logged_in_cookie = Cookie::build("logged_in", "false")
         .path("/")
         .max_age(time::Duration::minutes(-1))
         .same_site(SameSite::Lax)

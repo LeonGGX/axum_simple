@@ -280,8 +280,7 @@ async fn get_list_partitions_by_title_once_cell(
         show_partitions.push(show_part);
     }
     globals::once_cell::set_static_vec_partitions(show_partitions);
-    let partitions = globals::once_cell::get_static_vec_partitions();
-    partitions
+    globals::once_cell::get_static_vec_partitions()
 }
 
 async fn get_list_partitions_by_genre_once_cell(
@@ -297,8 +296,7 @@ async fn get_list_partitions_by_genre_once_cell(
         show_partitions.push(show_part);
     }
     globals::once_cell::set_static_vec_partitions(show_partitions);
-    let partitions = globals::once_cell::get_static_vec_partitions();
-    partitions
+    globals::once_cell::get_static_vec_partitions()
 }
 
 async fn get_list_partitions_by_author_once_cell(
@@ -314,17 +312,14 @@ async fn get_list_partitions_by_author_once_cell(
         show_partitions.push(show_part);
     }
     globals::once_cell::set_static_vec_partitions(show_partitions);
-    let partitions = globals::once_cell::get_static_vec_partitions();
-    partitions
+    globals::once_cell::get_static_vec_partitions()
 }
 
 async fn get_list_all_partitions_one_cell(pool: &PgPool) -> Vec<ShowPartition> {
     globals::once_cell::set_static_vec_partitions(list_show_partitions(pool).await.unwrap());
-    let partitions = globals::once_cell::get_static_vec_partitions();
-    partitions
+    globals::once_cell::get_static_vec_partitions()
 }
 
 async fn get_existing_list_partitions_one_cell() -> Vec<ShowPartition> {
-    let partitions = globals::once_cell::get_static_vec_partitions();
-    partitions
+    globals::once_cell::get_static_vec_partitions()
 }
