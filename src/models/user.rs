@@ -66,6 +66,19 @@ pub struct FilteredUser {
     pub updated_at: DateTime<Utc>,
 }
 
+pub fn filter_user_record(user: &User) -> FilteredUser {
+    FilteredUser {
+        id: user.id.to_string(),
+        email: user.email.to_owned(),
+        name: user.name.to_owned(),
+        photo: user.photo.to_owned(),
+        role: user.role.to_owned(),
+        verified: user.verified,
+        created_at: user.created_at.unwrap(),
+        updated_at: user.updated_at.unwrap(),
+    }
+}
+
 //**************************************************************************
 // axum-login
 
@@ -77,17 +90,6 @@ pub enum Role {
     Administrateur,
     Utilisateur,
     Autre,
-}
-impl Role {
-    fn to_string(&self) -> String {
-        if *self == Role::Administrateur {
-            "Administrateur".to_string()
-        } else if *self == Role::Utilisateur {
-            "Utilisateur".to_string()
-        } else {
-            "Autre".to_string()
-        }
-    }
 }
 
 impl fmt::Display for Role {
