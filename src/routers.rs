@@ -58,20 +58,19 @@ pub fn create_routers(app_state: AppState) -> Router {
     // access token).
     // two possibilities :
     // the easiest one : add an Extension<JWTAuthmiddleware> as argument to the handler
-    // (this is the case with 'list_user_with_extension' handler
+    // (this is the case with 'list_user_with_extension' handler)
     // the less easy one : add a second layer auth_admin that comes after the auth layer
     // and adds a new condition to the request ...
     // (this is the case with 'list_user_askama')
     //
     let admin_routes = Router::new()
-        .route("/users", get(list_users_with_extension))
-        /*
-        .route("/users", get(list_users_askama_hdl))
-        .route_layer(middleware::from_fn_with_state(
-            app_state.clone(),
-            auth_layer::auth_admin,
-        ))
-        */
+        .route("/users", get(list_users_with_extension)) // the easiest way
+        // the less easy way :
+        //.route("/users", get(list_users_askama_hdl))
+        //.route_layer(middleware::from_fn_with_state(
+            //app_state.clone(),
+            //auth_layer::auth_admin,
+        //))        
         .route_layer(middleware::from_fn_with_state(
             app_state.clone(),
             auth_layer::auth,
@@ -79,11 +78,11 @@ pub fn create_routers(app_state: AppState) -> Router {
         .with_state(app_state.clone());
 
     // A router to debug app
-    // for all users
+    // for all users : for debug reasons
     let debug_routes = Router::new()
         .route(
             "/cookies",
-            get(print_cookies_askama /*print_req_cookies_askama*/),
+            get(print_cookies_askama),
         )
         .with_state(app_state.clone());
 
