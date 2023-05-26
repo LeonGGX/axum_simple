@@ -37,10 +37,10 @@ pub struct JWTAuthMiddleware {
 /// in the request cookie jar or header.    
 /// It verifies if the token is valid
 ///
-/// It adds a JWTAuthmiddelware struct to the request
+/// It adds a JWTAuthMiddelware struct to the request
 /// that struct contains a User (authenticated) and a token id.
 /// Can be used to check the role of the user and e.g. restrict the access
-/// to a page only to administrator by passing the Extension(JWTAuthmiddelware)
+/// to a page only to administrator by passing the Extension(JWTAuthMiddelware)
 /// to the handler
 ///
 #[allow(dead_code)]
@@ -164,26 +164,25 @@ pub async fn auth<B>(
 ///
 #[allow(dead_code)]
 pub async fn auth_admin<B>(
-    State(state): State<AppState>,
-    //cookie_jar: CookieJar,
+    State(state): State<AppState>,    
     Extension(auth_ext): Extension<JWTAuthMiddleware>,
     mut req: Request<B>,
     next: Next<B>,
 ) -> Result<impl IntoResponse, MyAppError> {
     tracing::info!("Entering auth_admin middleware");
-    /*let role = req
-        .extensions()
-        .get::<JWTAuthMiddleware>()
-        .map(|ext| ext.user.role.clone())
-        .ok_or_else(|| MyAppError::new(StatusCode::INTERNAL_SERVER_ERROR, "No Role found"))?;
-    */
+    // if Extension is not used :
+    // let role = req
+       // .extensions()
+       // .get::<JWTAuthMiddleware>()
+       // .map(|ext| ext.user.role.clone())
+       // .ok_or_else(|| MyAppError::new(StatusCode::INTERNAL_SERVER_ERROR, "No Role found"))?;    
     let role = auth_ext.user.role;
     if role == "Administrateur" {
         Ok(next.run(req).await)
     } else {
         Err(MyAppError::new(
             StatusCode::UNAUTHORIZED,
-            "Page Only For Administrators",
+            "No ! Page Only For Administrators",
         ))
     }
 }
