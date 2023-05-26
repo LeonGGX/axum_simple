@@ -49,6 +49,7 @@ pub async fn login_form_askama_hdl(
     (in_flash, template)
 }
 
+///
 /// # post_login_hdl
 ///
 /// logs the user in.
@@ -78,15 +79,6 @@ pub async fn post_login_hdl(
     let access_token_details: TokenDetails;
     let refresh_token_details: TokenDetails;
     let cookiejar: CookieJar;
-    /*let mut access_token_details = TokenDetails {
-        token: Some("".to_string()),
-        ..Default::default()
-    };*/
-    /*let mut refresh_token_details = TokenDetails {
-        token: Some("".to_string()),
-        ..Default::default()
-    };
-    let mut cookiejar = cookie_jar.clone();*/
 
     let result_opt_user = find_user_by_name(input.name, &state.pool).await;
     match result_opt_user {
@@ -110,8 +102,11 @@ pub async fn post_login_hdl(
                     return Err((flash.error(message), Redirect::to("/auth/login")));
                 } else {
                     // the password is ok
+
+                    // create an access token
                     let access_token_dtls = generate_token(
                         user.id,
+                        user.role.clone(),
                         state.env.access_token_max_age,
                         state.env.access_token_private_key.to_owned(),
                     );
@@ -125,12 +120,15 @@ pub async fn post_login_hdl(
                                 a_t_d.token,
                                 a_t_d.token_uuid,
                                 a_t_d.user_id,
+                                a_t_d.user_role.clone(),
                                 a_t_d.expires_in,
                             );
                         }
                     }
+                    // creates a refresh token
                     let refresh_token_dtls = generate_token(
                         user.id,
+                        user.role.clone(),
                         state.env.refresh_token_max_age,
                         state.env.refresh_token_private_key.to_owned(),
                     );
@@ -144,6 +142,7 @@ pub async fn post_login_hdl(
                                 r_t_d.token,
                                 r_t_d.token_uuid,
                                 r_t_d.user_id,
+                                r_t_d.user_role.clone(),
                                 r_t_d.expires_in,
                             );
                         }
@@ -186,7 +185,7 @@ pub async fn post_login_hdl(
                 state.env.access_token_max_age * 60,
             ))
             .same_site(SameSite::Lax)
-            .http_only(true)
+            .http_only(false)
             .finish();
 
             let refresh_cookie = Cookie::build(

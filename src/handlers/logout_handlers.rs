@@ -58,7 +58,7 @@ pub async fn logout_handler(
         .redis_client
         .get_async_connection()
         .await
-        .map_err(|e| MyAppError::new(StatusCode::UNAUTHORIZED, format!("Redis error: {e}")))?;
+        .map_err(|e| MyAppError::from(e))?;
 
     redis_client
         .del(&[
@@ -66,12 +66,7 @@ pub async fn logout_handler(
             auth_guard.auth_token_uuid.to_string(),
         ])
         .await
-        .map_err(|e| {
-            MyAppError::new(
-                StatusCode::INTERNAL_SERVER_ERROR,
-                format!("Error Redis: {e}"),
-            )
-        })?;
+        .map_err(|e| MyAppError::from(e))?;
     // brings auth_token to null
     let access_cookie = Cookie::build("auth_token", "")
         .path("/")
