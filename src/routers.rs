@@ -19,8 +19,8 @@ use crate::handlers::partitions_handlers::{
 };
 use crate::handlers::signup_handlers::{post_signup_hdl, signup_form_askama_hdl};
 use crate::handlers::utils_handlers::{
-    about_hdl, favicon, handler_404, hello_name_askama_hdl, list_users_askama_hdl, start_hdl,
-    welcome_hdl,
+    about_hdl, favicon, handler_404, hello_name_askama_hdl, list_users_askama_hdl,
+    list_users_with_extension, start_hdl, welcome_hdl,
 };
 use crate::main_response_mapper;
 use crate::print_req_res::print_cookies_askama;
@@ -53,26 +53,47 @@ pub fn create_routers(app_state: AppState) -> Router {
     // A simple router to say hello
     let hello_routes = Router::new().route("/:name", get(hello_name_askama_hdl));
 
+    // the administrator routes are protected by the auth layer that adds
+    // a JWTAuthmiddleware struct to the request. This contains a User (authenticated with
+    // access token).
+    // two possibilities :
+    // the easiest one : add an Extension<JWTAuthmiddleware> as argument to the handler
+    // (this is the case with 'list_user_with_extension' handler
+    // the less easy one : add a second layer auth_admin that comes after the auth layer
+    // and adds a new condition to the request ...
+    // (this is the case with 'list_user_askama')
+    //
+    let admin_routes = Router::new()
+        .route("/users", get(list_users_with_extension))
+        /*
+        .route("/users", get(list_users_askama_hdl))
+        .route_layer(middleware::from_fn_with_state(
+            app_state.clone(),
+            auth_layer::auth_admin,
+        ))
+        */
+        .route_layer(middleware::from_fn_with_state(
+            app_state.clone(),
+            auth_layer::auth,
+        ))
+        .with_state(app_state.clone());
+
     // A router to debug app
-    // only for logged in users
+    // for all users
     let debug_routes = Router::new()
         .route(
             "/cookies",
             get(print_cookies_askama /*print_req_cookies_askama*/),
         )
-        //.route_layer(middleware::from_fn_with_state(
-        //app_state.clone(),
-        //auth_layer::auth,
-        //))
         .with_state(app_state.clone());
 
     // Authorisation Router
     // the route "/login" correspond to "/auth/login"
+    // the "/logout" route is submitted to a logged state, so not here ...
+    // for all users of course.
     let auth_routes = Router::new()
         .route("/login", get(login_form_askama_hdl).post(post_login_hdl))
-        .route("/signup", get(signup_form_askama_hdl).post(post_signup_hdl))
-        //.route("/logout", post(logout_handler))
-        .route("/users", get(list_users_askama_hdl));
+        .route("/signup", get(signup_form_askama_hdl).post(post_signup_hdl));
 
     // A router with state : a PgPool is necessary and is to be found in the state
     // with_state(AppState{}) comes at the end or if it's general later in app
@@ -107,6 +128,8 @@ pub fn create_routers(app_state: AppState) -> Router {
     let welcome_route = Router::new().route("/", get(welcome_hdl));
 
     // api routes only for logged users
+    // whatever their role.
+    // the logout route is here (one must be logged in to logout)
     let api_routes = Router::new()
         .nest("/about", about_route)
         .nest("/welcome", welcome_route)
@@ -129,8 +152,8 @@ pub fn create_routers(app_state: AppState) -> Router {
         .nest("/api", api_routes)
         .nest("/debug", debug_routes)
         .nest("/hello", hello_routes)
+        .nest("/admin", admin_routes)
         .route("/favicon.png", get(favicon))
-        //.with_state(app_state.clone())
         .fallback(handler_404)
         .layer(
             ServiceBuilder::new()
