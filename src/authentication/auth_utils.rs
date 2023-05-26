@@ -144,11 +144,7 @@ pub async fn refresh_access_token_handler(
         .same_site(SameSite::Lax)
         .http_only(false)
         .finish();
-
-    /*let mut response = Response::new(
-        json!({"status": "success", "access_token": access_token_details.token.unwrap()})
-            .to_string(),
-    );*/
+    
     let mut response: Response<String> = Response::default();
     let mut headers = HeaderMap::new();
     headers.append(
