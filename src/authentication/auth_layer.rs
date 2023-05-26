@@ -37,6 +37,12 @@ pub struct JWTAuthMiddleware {
 /// in the request cookie jar or header.    
 /// It verifies if the token is valid
 ///
+/// It adds a JWTAuthmiddelware struct to the request
+/// that struct contains a User (authenticated) and a token id.
+/// Can be used to check the role of the user and e.g. restrict the access
+/// to a page only to administrator by passing the Extension(JWTAuthmiddelware)
+/// to the handler
+///
 #[allow(dead_code)]
 pub async fn auth<B>(
     State(state): State<AppState>,
