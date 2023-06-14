@@ -4,6 +4,11 @@ use base64::{engine::general_purpose, Engine as _};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
+///
+/// struct will be returned from the helper functions
+/// after signing and verifying the JWT
+/// and will serve as the JWT metadata.
+///
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct TokenDetails {
     pub token: Option<String>,
@@ -30,7 +35,14 @@ impl TokenDetails {
         }
     }
 }
-
+///
+/// struct that will allow us to encode and decode the JWT payload.
+///
+/// sub = submitted by    
+/// exp = expire    
+/// iat = issued at    
+/// nbf = not before
+///
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TokenClaims {
     pub sub: String,
@@ -48,7 +60,8 @@ pub struct TokenClaims {
 /// and a private key as input parameters.
 ///    
 /// In this function, we first decode the base64-encoded private key back to a UTF8 string.
-/// After decoding the base64-encoded private key, we create instances of the TokenDetails and TokenClaims structs
+/// After decoding the base64-encoded private key,
+/// we create instances of the TokenDetails and TokenClaims structs
 /// that respectively hold the metadata and claims of the JWT.
 /// These structs are then passed to the jsonwebtoken::encode() function,
 /// which generates the JWT using the RS256 algorithm.

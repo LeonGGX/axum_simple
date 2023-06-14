@@ -14,13 +14,15 @@ use axum::{
 use axum_core::response::IntoResponse;
 use axum_extra::extract::cookie::CookieJar;
 use hyper::header;
-use redis::{AsyncCommands, FromRedisValue};
+use redis::AsyncCommands;
 use serde::{Deserialize, Serialize};
 
 ///
 /// Struct that contains :    
 /// - user : User    
-/// - auth_token_uuid
+/// - auth_token_uuid   
+/// Used to send data in the requests that are filtered by the
+/// auth layer
 ///
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct JWTAuthMiddleware {
@@ -38,9 +40,9 @@ pub struct JWTAuthMiddleware {
 /// It verifies if the token is valid
 ///
 /// It adds a JWTAuthMiddelware struct to the request
-/// that struct contains a User (authenticated) and a token id.
+/// that struct contains a User (authenticated) and a token id.    
 /// Can be used to check the role of the user and e.g. restrict the access
-/// to a page only to administrator by passing the Extension(JWTAuthMiddelware)
+/// to a page only to administrator by passing the Extension(JWTAuthmiddelware)
 /// to the handler
 ///
 #[allow(dead_code)]
@@ -50,7 +52,7 @@ pub async fn auth<B>(
     mut req: Request<B>,
     next: Next<B>,
 ) -> Result<impl IntoResponse, MyAppError> {
-    tracing::info!("Entering auth middleware");
+    tracing::info!(" ->>    Entering auth layer");
     // Fetching an auth_token among the cookies in cookiejar and stringify it
     // if no cookie is found, we check the header AUTHORIZATION and parse it
     let auth_token = cookie_jar
@@ -61,13 +63,15 @@ pub async fn auth<B>(
                 .get(header::AUTHORIZATION)
                 .and_then(|auth_header| auth_header.to_str().ok())
                 .and_then(|auth_value| {
-                    //if auth_value.starts_with("Bearer ") {
-                    //Some(auth_value[7..].to_owned())
+                    /*
                     if let Some(auth_value) = auth_value.strip_prefix("Bearer ") {
                         Some(auth_value.to_owned())
                     } else {
                         None
-                    }
+                    }*/
+                    Some(auth_value)
+                        .and_then(|av| av.strip_prefix("Bearer "))
+                        .map(|av| av.to_owned())
                 })
         });
     // if there is no auth_token in cookies or header AUTHORIZATION
@@ -112,8 +116,9 @@ pub async fn auth<B>(
     // get the token_user_uuid from the redis DB using the auth_token_uuid
     let redis_token_user_id = redis_client
         .get::<_, String>(auth_token_uuid.clone().to_string())
-        .await
-        .map_err(|err| MyAppError::from(err))?;
+        .await?;
+    //.map_err(|err| MyAppError::from(err))?;
+
     // transform the redis_token_id which is a string to an uuid
     let user_id_uuid = uuid::Uuid::try_parse(&redis_token_user_id).map_err(|_| {
         MyAppError::new(
@@ -121,11 +126,11 @@ pub async fn auth<B>(
             "Token is invalid or session has expired",
         )
     })?;
+
     // let's fetch a user with the uuid
-    // we must return an Option ...
-    let user = find_user_by_id(user_id_uuid, &state.pool)
-        .await
-        .map_err(|e| MyAppError::from(e))?;
+    // the function returns an Option ...
+    let user = find_user_by_id(user_id_uuid, &state.pool).await?;
+
     // Si l'Option n'est pas None et contient un User on continue
     // sinon, on renvoie une erreur précisant que le token n'existe plus
     let user = user.ok_or_else(|| {
@@ -134,11 +139,14 @@ pub async fn auth<B>(
             "Error : The user belonging to this token no longer exists".to_string(),
         )
     })?;
+    // we insert a JWTAuthMiddleware in the request with a User and the auth_token id
+    // the JWTAuthMiddleware struct can now be used as an Extension in the handlers
+    // with the auth layer.
     req.extensions_mut().insert(JWTAuthMiddleware {
         user,
         auth_token_uuid,
     });
-
+    // we send the request further ...
     Ok(next.run(req).await)
 }
 
@@ -164,25 +172,20 @@ pub async fn auth<B>(
 ///
 #[allow(dead_code)]
 pub async fn auth_admin<B>(
-    State(state): State<AppState>,    
+    //State(state): State<AppState>,
+    //cookie_jar: CookieJar,
     Extension(auth_ext): Extension<JWTAuthMiddleware>,
-    mut req: Request<B>,
+    req: Request<B>,
     next: Next<B>,
 ) -> Result<impl IntoResponse, MyAppError> {
-    tracing::info!("Entering auth_admin middleware");
-    // if Extension is not used :
-    // let role = req
-       // .extensions()
-       // .get::<JWTAuthMiddleware>()
-       // .map(|ext| ext.user.role.clone())
-       // .ok_or_else(|| MyAppError::new(StatusCode::INTERNAL_SERVER_ERROR, "No Role found"))?;    
+    tracing::info!(" ->>    Entering auth_admin middleware");
     let role = auth_ext.user.role;
     if role == "Administrateur" {
         Ok(next.run(req).await)
     } else {
         Err(MyAppError::new(
             StatusCode::UNAUTHORIZED,
-            "No ! Page Only For Administrators",
+            "Page Only For Administrators",
         ))
     }
 }

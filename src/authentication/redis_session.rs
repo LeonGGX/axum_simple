@@ -16,11 +16,12 @@ use crate::authentication::jwt::TokenDetails;
 use crate::errors::MyAppError;
 use crate::AppState;
 use axum::extract::State;
-use axum::http::StatusCode;
-use redis::{AsyncCommands, Commands};
+use redis::AsyncCommands;
 
 ///
-/// Saves the token ID and the User ID to Redis    
+/// Saves the token ID as a key    
+/// and the User ID as the value in the key to Redis    
+///
 /// Returns an empty Ok Result (()) or MyappError    
 /// Args :    
 /// - the AppState
@@ -33,19 +34,19 @@ pub async fn save_token_data_to_redis(
     max_age: i64,
 ) -> Result<(), MyAppError> {
     // first get an async connection from the Redis Client in AppState
-    let mut redis_client = state
-        .redis_client
-        .get_async_connection()
-        .await
-        .map_err(|e| MyAppError::from(e))?;
+    let mut redis_client = state.redis_client.get_async_connection().await?;
+    //.map_err(|e| MyAppError::from(e))?;
+
+    // we store the token uid as the key
+    // we store the user uid as the value in the key
     redis_client
         .set_ex(
             token_details.token_uuid.to_string(),
             token_details.user_id.to_string(),
             (max_age * 60) as usize, // 15 minutes
         )
-        .await
-        .map_err(|err| MyAppError::from(err))?;
+        .await?;
+    //.map_err(|err| MyAppError::from(err))?;
 
     Ok(())
 }
