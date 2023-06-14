@@ -27,8 +27,10 @@ pub struct Payload {
 // CRUD Operations
 //
 
+///
 /// # Handler
-/// Creates a new genre in the DB
+///
+/// **Creates a new genre in the DB**
 ///
 /// ## Arguments
 /// * 'flash' - An axum_flash Flash
@@ -67,7 +69,7 @@ pub async fn update_genre_hdl(
 ) -> (Flash, Redirect) {
     let updated_genre_name = form.name;
     if let Ok(genre) = update_genre(id, updated_genre_name, &state.pool).await {
-        tracing::info!("genre modifyed : {:?}", genre);
+        tracing::info!("genre modified : {:?}", genre);
         let message = format!("Genre modifié : {}", genre.name);
         (flash.success(message), Redirect::to("/api/genres"))
     } else {
@@ -96,11 +98,12 @@ pub async fn delete_genre_hdl(
 // Functions to show or print list of genres
 //
 
+///
 /// # Handler
 ///
-/// Shows the page to manage the genres
+/// **Shows the main page to manage the genres**
 ///
-/// Returns a HTML Page (askama template) or AppError
+/// Returns a HTML Page (Askama Template) or MyAppError
 ///
 #[debug_handler]
 pub async fn manage_genres_askama_hdl(
@@ -113,12 +116,6 @@ pub async fn manage_genres_askama_hdl(
         .collect::<Vec<_>>()
         .join(", ");
     tracing::info!("flash : {}", flash);
-
-    // populates the static vector of Genre with the list of all genres
-    //set_static_vec_genres(list_genres(&state.pool).await?);
-    // get the values in the static vector of genres
-    //let genres = get_static_vec_genres();
-
     let genres = get_list_all_genres_one_cell(&state.pool)
         .await
         .map_err(|_| {
@@ -140,18 +137,16 @@ pub async fn manage_genres_askama_hdl(
     Ok((in_flash, template))
 }
 
+///
 /// # Handler
 ///
-/// Shows a printable list of Genres
+/// **Shows a printable list of Genres**
 ///
-/// Returns a HTML Page or AppError
+/// Returns a HTML Page (Askama Template) or MyAppError
 ///
 #[debug_handler]
-pub async fn list_genres_askama_hdl(//State(state): State<AppState>,
-) -> Result<ListGenresTemplate, MyAppError> {
-    //let list_genres = list_genres(&state.pool).await?;
-    //let list_genres = get_static_vec_genres();
-    let list_genres = get_existing_list_genres_one_cell().await.unwrap();
+pub async fn list_genres_askama_hdl() -> Result<ListGenresTemplate, MyAppError> {
+    let list_genres = get_existing_list_genres_one_cell().await?;
     let template = ListGenresTemplate { list_genres };
     Ok(template)
 }
@@ -160,9 +155,10 @@ pub async fn list_genres_askama_hdl(//State(state): State<AppState>,
 // Functions to find genres by different criteria
 //
 
+///
 /// # Handler
 ///
-/// find_genre_by_name
+/// **find_genre_by_name**
 ///
 /// returns list genre page with genre found
 ///
@@ -181,16 +177,12 @@ pub async fn find_genre_by_name_hdl(
     let name = form.name;
     tracing::debug!("name : {}", name);
 
-    //let genres = find_genre_by_name(name, &state.pool).await?;
-    //set_static_vec_genres(find_genre_by_name(name, pool).await?);
-    //let genres = get_static_vec_genres();
     let genres = get_filtered_list_genres_once_cell(&state.pool, name)
         .await
         .unwrap();
 
     let title = "Genre(s) trouvé(s)".to_string();
     let flash = Some(flash);
-    //let flash = None;
 
     let template = HandleGenresTemplate {
         title,
@@ -199,8 +191,10 @@ pub async fn find_genre_by_name_hdl(
     };
     Ok(template)
 }
-
 ///
+/// # Handler
+///
+/// **Returns a filtered list of genres**<br>
 /// Functions with OneCell crate
 ///
 ///
@@ -208,11 +202,16 @@ pub async fn get_filtered_list_genres_once_cell(
     pool: &PgPool,
     genre_name: String,
 ) -> Result<Vec<Genre>, MyAppError> {
-    globals::once_cell::set_static_vec_genres(find_genre_by_name(genre_name, pool).await.unwrap());
+    globals::once_cell::set_static_vec_genres(find_genre_by_name_parts(genre_name, pool).await?);
     let genres = globals::once_cell::get_static_vec_genres();
     Ok(genres)
 }
-
+///
+/// # Handler
+///
+/// **Returns a list of all genres**<br>
+/// Functions with OneCell crate
+///
 pub async fn get_list_all_genres_one_cell(pool: &PgPool) -> Result<Vec<Genre>, MyAppError> {
     globals::once_cell::set_static_vec_genres(list_genres(pool).await.unwrap());
     let genres = globals::once_cell::get_static_vec_genres();

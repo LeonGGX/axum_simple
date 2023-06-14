@@ -86,6 +86,7 @@ pub async fn favicon() -> impl IntoResponse {
     )
 }
 
+#[allow(dead_code)]
 #[debug_handler]
 pub async fn list_users_askama_hdl(State(state): State<AppState>) -> impl IntoResponse {
     let title = "Liste des Utilisateurs".to_string();

@@ -14,6 +14,10 @@ use axum_extra::extract::CookieJar;
 use redis::AsyncCommands;
 use tower_cookies::cookie::time;
 
+///
+/// # Handler
+/// **Shows the logout page**
+///
 #[debug_handler]
 pub async fn logout_page() -> LogoutTemplate {
     let title = "Se déconnecter".to_string();
@@ -22,9 +26,9 @@ pub async fn logout_page() -> LogoutTemplate {
 
 ///
 /// # Handler
-/// Logs the current user out    
-/// Deletes all identification cookies (auth_token, refresh_token)    
-/// Sets the logged_in cookie to false   
+/// **Logs the current user out**<br>    
+/// Deletes all identification cookies (auth_token, refresh_token)<br>    
+/// Sets the logged_in cookie to false<br>
 /// Deletes data from redis session   
 ///
 #[debug_handler]
@@ -33,7 +37,7 @@ pub async fn logout_handler(
     cookie_jar: CookieJar,
     Extension(auth_guard): Extension<JWTAuthMiddleware>,
 ) -> Result<(CookieJar, Redirect), MyAppError> {
-    tracing::info!("Entering LOGOUT_HANDLER");
+    tracing::info!("->>     Entering LOGOUT_HANDLER");
     let refresh_token = cookie_jar
         .get("refresh_token")
         .map(|cookie| cookie.value().to_string())
@@ -54,19 +58,17 @@ pub async fn logout_handler(
         )
     })?;
 
-    let mut redis_client = state
-        .redis_client
-        .get_async_connection()
-        .await
-        .map_err(|e| MyAppError::from(e))?;
+    let mut redis_client = state.redis_client.get_async_connection().await?;
+    //.map_err(|e| MyAppError::from(e))?;
 
     redis_client
         .del(&[
             refresh_token_details.token_uuid.to_string(),
             auth_guard.auth_token_uuid.to_string(),
         ])
-        .await
-        .map_err(|e| MyAppError::from(e))?;
+        .await?;
+    //.map_err(|e| MyAppError::from(e))?;
+
     // brings auth_token to null
     let access_cookie = Cookie::build("auth_token", "")
         .path("/")
@@ -96,3 +98,6 @@ pub async fn logout_handler(
 
     Ok((cookiejar, Redirect::to("/")))
 }
+// function tested with redis : both keys are deleted
+// page /debug/cookies shows empty cookies
+// OK

@@ -31,14 +31,6 @@ pub async fn signup_form_askama_hdl(
     State(_app): State<AppState>,
     in_flash: IncomingFlashes,
 ) -> (IncomingFlashes, SignupTemplate) {
-    /*
-    let str_flash = flash
-        .into_iter()
-        .map(|(level, text)| format!("{:?}: {}", level, text))
-        .collect::<Vec<_>>()
-        .join(", ");
-    tracing::info!("flash : {}", str_flash);
-    */
     let mut flash = String::new();
     for (level, message) in &in_flash {
         flash.push_str(&format!("{:?}: {}", level, message))
@@ -78,15 +70,15 @@ pub async fn post_signup_hdl(
             let user = opt_user.unwrap();
             // if the user is found (option is some), we stop the signup process
             let message = format!("L'Utilisateur {} existe déjà !", user.name);
-            return (
+            (
                 cookie_jar,
                 flash.error(message),
                 Redirect::to("/auth/login"),
-            );
+            )
         } else {
             // the user is not in the DB : the Option is none
             // we add the user to the DB and invite him to log in
-            return match add_user(&new_user, &state.pool).await {
+            match add_user(&new_user, &state.pool).await {
                 Ok(user) => {
                     let message = format!(
                         "Bonjour {}, vous êtes enregistré, prière de vous logger",
@@ -106,8 +98,8 @@ pub async fn post_signup_hdl(
                         Redirect::to("/auth/signup"),
                     )
                 }
-            };
-        };
+            }
+        }
     } else {
         let message = "DataBase Error".to_string();
         (
@@ -130,9 +122,9 @@ pub fn validate_username(s: &str) -> Result<(), ValidationError> {
     let contains_forbidden_characters = s.chars().any(|g| forbidden_characters.contains(&g));
 
     if is_empty_or_whitespace || contains_forbidden_characters {
-        return Err(ValidationError::new(
+        Err(ValidationError::new(
             "Le nom d'utilisateur est vide ou contient des caractères interdits",
-        ));
+        ))
     } else {
         Ok(())
     }

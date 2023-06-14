@@ -3,19 +3,16 @@
 use axum::debug_handler;
 use axum::extract::{Form, Path, State};
 use axum::response::Redirect;
+use serde::{Deserialize, Serialize};
+use sqlx::PgPool;
 
 use axum_flash::{Flash, IncomingFlashes};
 
 use crate::askama::askama_tpl::{HandlePartitionsTemplate, ListPartitionsTemplate};
-use crate::{globals, AppState};
-use serde::{Deserialize, Serialize};
-use sqlx::PgPool;
-
 use crate::db::{genres::*, musicians::*, partitions::update_partition, partitions::*};
 use crate::errors::MyAppError;
-//use crate::models::genre::Genre;
-//use crate::models::musician::Person;
 use crate::models::partition::ShowPartition;
+use crate::{globals, AppState};
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct Payload {
@@ -25,12 +22,13 @@ pub struct Payload {
 //***********************************************************************************
 // CRUD Operations
 //
-
 ///
-/// Create a new partition in the partitions table
-/// and shows the list of all partitions
+/// # Handler
 ///
-/// Returns PartitionResponse or AppError
+/// **Creates a new partition in the partitions table**<br>
+/// Shows the list of all partitions
+///
+/// Returns a flash message and redirects to the main partition page *'api/partitions'*
 ///
 #[debug_handler]
 pub async fn create_partition_hdl(
@@ -54,33 +52,68 @@ pub async fn create_partition_hdl(
         (flash.error(message), Redirect::to("/api/partitions"))
     }
 }
+
+///
+/// # Handler
+///
+/// **Updates a partition in the partitions table**<br>
+/// Shows the list of all partitions
+///
+/// Returns a flash message and redirects to the main partition page *'api/partitions'*
+///
 #[debug_handler]
 pub async fn update_partition_hdl(
     State(state): State<AppState>,
     flash: Flash,
     Path(id): Path<i32>,
     Form(form): Form<ShowPartition>,
-) -> Result<(Flash, Redirect), MyAppError> {
+) -> (Flash, Redirect) {
     let partition_title = form.title;
 
-    let person = find_persons_by_name_strict(form.full_name, &state.pool).await?;
-    let person_id = person.id;
-
-    let genre = find_genre_by_name(form.name, &state.pool).await?;
-    let genre_id = genre[0].id;
-
-    if let Ok(partition) =
-        update_partition(id, partition_title, person_id, genre_id, &state.pool).await
-    {
-        tracing::info!("partition modified : {:?}", partition);
-        let message = format!("Partition modifiée : {}", partition.title);
-        Ok((flash.success(message), Redirect::to("/api/partitions")))
+    let person = find_persons_by_name_strict(form.full_name, &state.pool)
+        .await
+        .map_err(|err| {
+            let cause = err.message;
+            let message = format!("Error : {cause}");
+            (
+                flash.clone().error(message),
+                Redirect::to("/api/partitions"),
+            )
+        });
+    if person.is_err() {
+        let message = "Error retreiving person";
+        (flash.error(message), Redirect::to("/api/partitions"))
     } else {
-        tracing::info!("error modifying partition");
-        let message = "Partition pas modifiée".to_string();
-        Ok((flash.error(message), Redirect::to("/api/partitions")))
+        let person = person.unwrap();
+        let person_id = person.id;
+
+        let genre = find_genre_by_name_parts(form.name, &state.pool)
+            .await
+            .unwrap();
+        let genre_id = genre[0].id;
+
+        if let Ok(partition) =
+            update_partition(id, partition_title, person_id, genre_id, &state.pool).await
+        {
+            tracing::info!("partition modified : {:?}", partition);
+            let message = format!("Partition modifiée : {}", partition.title);
+            (flash.success(message), Redirect::to("/api/partitions"))
+        } else {
+            tracing::info!("error modifying partition");
+            let message = "Partition pas modifiée".to_string();
+            (flash.error(message), Redirect::to("/api/partitions"))
+        }
     }
 }
+
+///
+/// # Handler
+///
+/// **Deletes a partition in the partitions table**<br>
+/// Shows the list of all partitions
+///
+/// Returns a flash message and redirects to the main partition page *'api/partitions'*
+///
 #[debug_handler]
 pub async fn delete_partition_hdl(
     State(state): State<AppState>,
@@ -89,7 +122,7 @@ pub async fn delete_partition_hdl(
 ) -> (Flash, Redirect) {
     if let Ok(deleted_partition) = delete_partition(id, &state.pool).await {
         let message = format!("Partition effacée : {deleted_partition}");
-        (flash.success(message), Redirect::to("/partitions"))
+        (flash.success(message), Redirect::to("/api/partitions"))
     } else {
         let message = "Partition pas effacée".to_string();
         (flash.error(message), Redirect::to("/api/partitions"))
@@ -100,9 +133,11 @@ pub async fn delete_partition_hdl(
 // Functions to show or print list of partitions
 //
 
+///
 /// # Handler
 ///
-/// Shows the page with the list of partitions via ShowPartition
+/// **Shows the main partition page**<br>
+/// with the list of partitions via ShowPartition
 ///
 /// Returns a HTML Page or AppError
 ///
@@ -133,10 +168,10 @@ pub async fn manage_partitions_hdl(
     };
     Ok((in_flash, template))
 }
-
+///
 /// # Handler
 ///
-/// Shows a printable list of all partitions in the db
+/// **Shows a printable list of all partitions in the db**<br>
 /// under the form of ShowPartitions
 ///
 /// Returns a HTML Page or AppError
@@ -157,8 +192,9 @@ pub async fn print_list_partitions_hdl() -> Result<ListPartitionsTemplate, MyApp
 // Functions to find one or several partitions based on different criteria
 //
 
+///
 /// # Handler
-/// find_partition_by_title
+/// **finds  partition(s) by the title**
 ///
 /// returns partitions page with partition(s) found by title
 ///
@@ -174,10 +210,6 @@ pub async fn find_partition_title_hdl(
         .collect::<Vec<_>>()
         .join(", ");
     tracing::info!("flash : {}", flash);
-    //let partitions = find_partition_by_title(form.name, &state.pool).await?;
-    //let show_partitions = vec_showpartitions_from_vec_partitions(partitions, &state.pool).await;
-    //set_static_vec_partitions(sh_partitions);
-    //let show_partitions = get_static_vec_partitions();
     let partitions = get_list_partitions_by_title_once_cell(&state.pool, form.name).await;
     let persons = list_persons(&state.pool).await?;
     let genres = list_genres(&state.pool).await?;
@@ -261,7 +293,7 @@ pub async fn find_partition_author_hdl(
     };
     Ok((in_flash, template))
 }
-
+///
 /// # Helpers functions
 ///
 /// Functions with OneCell crate

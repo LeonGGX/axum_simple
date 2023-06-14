@@ -29,10 +29,10 @@ use crate::AppState;
 
 /// # Handler
 ///
-/// affiche la page de login\
-/// affiche les messages flash\
+/// **Shows login page**<br>   
+/// shows flash messages (in case of error)  
 ///
-/// the flash must be returned so the cookie is removed
+/// the flash must be returned so that the cookie is removed
 ///
 #[debug_handler]
 pub async fn login_form_askama_hdl(
@@ -52,12 +52,14 @@ pub async fn login_form_askama_hdl(
 ///
 /// # post_login_hdl
 ///
-/// logs the user in.
-/// checks the existence of the username in the DB    
-/// checks the validity of the password    
-/// creates two token (access and refresh) and stores them in cookies    
-/// adds the user into a redis session    
-/// redirects to "api/welcome" if successful or returns to "auth/login" with failure flash message    
+/// **Logs the user in**.    
+/// - checks the existence of the username in the DB    
+/// - checks the validity of the password    
+/// - creates two token (access and refresh) and stores them in cookies    
+/// - adds the user id into a redis session through a TokenDetails struct.    
+///  the token_id from the struct is used as a Redis Key and the user_id is the value of the key.         
+/// Two Redis Keys with same value are created (!?)     
+/// - redirects to "api/welcome" if successful or returns to "auth/login" with failure flash message    
 ///
 /// Since parsing form data requires consuming the request body, the `Form` extractor must be
 /// *last* if there are multiple extractors in a handler.   
@@ -73,12 +75,13 @@ pub async fn post_login_hdl(
     flash: Flash,
     ValidatedLoginForm(input): ValidatedLoginForm<CreateLoginInput>,
 ) -> Result<(CookieJar, Flash, Redirect), (Flash, Redirect)> {
-    println!("->> {:<12}  - post_login_hdl", "HANDLER");
+    tracing::info!("->>  - post_login_hdl");
 
-    // the following three variables must be known all along the handler
+    // the following variables must be known all along the handler
     let access_token_details: TokenDetails;
     let refresh_token_details: TokenDetails;
     let cookiejar: CookieJar;
+    let user_name: String; // will be used for the cookie "logged_in"
 
     let result_opt_user = find_user_by_name(input.name, &state.pool).await;
     match result_opt_user {
@@ -94,6 +97,7 @@ pub async fn post_login_hdl(
                 // we know there is a user in the DB : the Option<User> is Some
                 // let's get the User inside the Option (we can unwrap: we know there is data)
                 let user = opt_user.unwrap();
+                user_name = user.name;
                 // first check password
                 let verify_pw = check_password(&input.password, &user.password).await;
                 if !verify_pw {
@@ -102,8 +106,7 @@ pub async fn post_login_hdl(
                     return Err((flash.error(message), Redirect::to("/auth/login")));
                 } else {
                     // the password is ok
-
-                    // create an access token
+                    // we create an access token
                     let access_token_dtls = generate_token(
                         user.id,
                         user.role.clone(),
@@ -185,7 +188,7 @@ pub async fn post_login_hdl(
                 state.env.access_token_max_age * 60,
             ))
             .same_site(SameSite::Lax)
-            .http_only(false)
+            .http_only(true)
             .finish();
 
             let refresh_cookie = Cookie::build(
@@ -194,13 +197,14 @@ pub async fn post_login_hdl(
             )
             .path("/")
             .max_age(::time::Duration::minutes(
-                state.env.refresh_token_max_age * 60,
+                state.env.refresh_token_max_age * 600,
             ))
             .same_site(SameSite::Lax)
             .http_only(true)
             .finish();
 
-            let logged_in_cookie = Cookie::build("logged_in", "true")
+            // shows the user name if logged or false
+            let logged_in_cookie = Cookie::build("logged_in", user_name)
                 .path("/")
                 .max_age(::time::Duration::minutes(
                     state.env.access_token_max_age * 60,
@@ -222,7 +226,7 @@ pub async fn post_login_hdl(
     }
     let message = "You are logged in".to_string();
     Ok((
-        cookiejar.clone(),
+        cookiejar,
         flash.success(message),
         Redirect::to("/api/welcome"),
     ))
@@ -279,7 +283,13 @@ impl IntoResponse for LoginFormError {
         .into_response()
     }
 }
-
+///
+/// **Struct CreateLoginInput**   
+/// Used to validate user input
+/// name = maximum 20 characters and minimum 4    
+/// email    
+/// password : must be at least 6 characters
+///
 #[derive(Debug, Deserialize, Validate)]
 pub struct CreateLoginInput {
     #[validate(length(min = 4, max = 20))]

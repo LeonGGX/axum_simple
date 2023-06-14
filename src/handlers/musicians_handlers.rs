@@ -16,19 +16,17 @@ use axum::Form;
 use axum_flash::{Flash, IncomingFlashes};
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
-//use std::ops::Deref;
-//use std::sync::{Mutex, RwLock};
-//use askama_axum::Error as AskamaError;
 
 /// the struct must be public ...
 #[derive(Serialize, Deserialize)]
 pub struct Payload {
     pub name: String,
 }
-
+///
 /// # Handler
+///
 /// **Manages the Printable Musician List Page**  
-/// Initiates the static Vec<Person> to show the list of musicians
+/// Initiates the static Vec(Person) to show the list of musicians
 /// filtered or not
 ///
 /// ## Arguments
@@ -47,7 +45,9 @@ pub async fn list_persons_askama_hdl(//State(state): State<AppState>,
     Ok(template)
 }
 
+///
 /// # Handler
+///
 /// **Manages the Musician Page**  
 /// Initiates the static Vec<Person> to show the list of musicians
 ///
@@ -55,9 +55,9 @@ pub async fn list_persons_askama_hdl(//State(state): State<AppState>,
 /// * 'state' - the AppState with PgPool
 /// * 'in_flash' - An axum_flash IncomingFlash
 /// ## Returns
-/// * Result with the IncomingFlases and the Askama Template that handles
+/// * Result with the IncomingFlashes and the Askama Template that handles
 /// the Musician Page
-/// * Redirects to /persons page with a flash message\
+/// * Redirects to '/persons' page with a flash message\
 /// '''
 #[debug_handler]
 pub async fn manage_persons_askama_hdl(
@@ -84,15 +84,17 @@ pub async fn manage_persons_askama_hdl(
     // il faut retourner le flash pour qu'il soit enlevé du cookie
     Ok((in_flash, template))
 }
-
+///
 /// # Handler
-/// Creates a new person (musician) in the DB
+///
+/// **Creates a new person (musician) in the DB**
 ///
 /// ## Arguments
 /// * 'flash' - An axum_flash Flash
 /// * 'state' - the AppState with PgPool
-/// * 'form'  - the person name comes from a Form<Payload> where struct Payload has a field "value: String"\
-///             Form must be placed as last argument because it consumes the request
+/// * 'form'  - the person name comes from a Form(Payload) where struct Payload has a field "value: String"<br>
+/// <br>
+///             *Form must be placed as last argument because it consumes the request*
 /// ## Returns
 /// * the flash message
 /// * Redirects to /persons page with a flash message\
@@ -142,8 +144,8 @@ pub async fn delete_person_hdl(
     State(state): State<AppState>,
     Path(id): Path<i32>,
 ) -> (Flash, Redirect) {
-    if let Ok(deleted_name) = delete_person(id, &state.pool).await {
-        let message = format!("Musicien effacé : {}", deleted_name);
+    if let Ok(deleted_person) = delete_person(id, &state.pool).await {
+        let message = format!("Musicien effacé : {}", deleted_person.full_name);
         (flash.success(message), Redirect::to("/api/persons"))
     } else {
         let message = "Erreur Musicien pas effacé".to_string();
@@ -156,17 +158,17 @@ pub async fn delete_person_hdl(
 //
 
 #[doc = include_str!("../docs/find_person_by_name_hdl.md")]
-
+///
 /// # Handler
 ///
 /// ## pub async fn find_person_by_name_hdl
 ///
-/// Finds person(s) with the first letter or a group of first letters\
-///  e.g. two authors in the DB BREL, BRASSENS and BARTOK\
-/// if you enter "B" the function returns all three\
-/// if you enter "BR" the function returns BREL and BRASSENS\
-/// if you enter "BRE" the function returns BREL (idem if you enter BREL)\
-///
+/// **Finds person(s) with the first letter or a group of first letters**<br>
+///  e.g. two authors in the DB BREL, BRASSENS and BARTOK<br>
+/// if you enter "B" the function returns all three<br>
+/// if you enter "BR" the function returns BREL and BRASSENS<br>
+/// if you enter "BRE" the function returns BREL (idem if you enter BREL)<br>
+/// <br>
 /// returns manage persons page with persons found
 ///
 #[debug_handler]
