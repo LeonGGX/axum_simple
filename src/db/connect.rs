@@ -10,7 +10,7 @@ use sqlx::{Pool, Postgres};
 /// or a sqlx error
 ///
 pub async fn create_pg_pool(db_url: String) -> sqlx::Result<Pool<Postgres>> {
-    return match PgPoolOptions::new()
+    match PgPoolOptions::new()
         .max_connections(5)
         .connect(&db_url)
         .await
@@ -23,14 +23,14 @@ pub async fn create_pg_pool(db_url: String) -> sqlx::Result<Pool<Postgres>> {
             println!("🔥 -- Failed to connect to the database: {:?}", err);
             std::process::exit(1)
         }
-    };
+    }
 }
 
 ///
 /// Returns à redis client or a RedisError
 ///
 pub async fn create_redis_client(redis_data_from_config: String) -> RedisResult<Client> {
-    return match Client::open(redis_data_from_config) {
+    match Client::open(redis_data_from_config) {
         Ok(client) => {
             println!("✅ -- Connection to Redis is successful!");
             Ok(client)
@@ -39,5 +39,5 @@ pub async fn create_redis_client(redis_data_from_config: String) -> RedisResult<
             println!("🔥 -- Error connecting to Redis: {}", err);
             std::process::exit(1);
         }
-    };
+    }
 }

@@ -1,10 +1,9 @@
 //! src/db/partitions.rs
 
-use axum::http::StatusCode;
 use sqlx::postgres::PgRow;
 use sqlx::{PgPool, Row};
 
-use crate::db::genres::find_genre_by_name;
+use crate::db::genres::find_genre_by_name_strict;
 use crate::db::musicians::find_persons_by_name_strict;
 use crate::errors::MyAppError;
 use crate::models::partition::{Partition, ShowPartition};
@@ -12,51 +11,44 @@ use crate::models::partition::{Partition, ShowPartition};
 //*******************************************************************************************
 // CRUD Operations on partitions
 //
+///
+/// **Adds a partition to the DB**<br>
+/// requires a title, the musician name and the genre<br>
+/// requires a PgPool<br>
+/// uses sqlx::query_as! macro<br>
+/// in the sql query when returning the id to build the Person struct,<br>
+/// it's necessary to write RETURNING id as "id?", ... or we get an error
+/// from the DB
+///
 pub async fn add_partition(
     title: String,
     person_name: String,
     genre_name: String,
     pool: &PgPool,
 ) -> Result<Partition, MyAppError> {
-    let person_id: i32;
-    let genre_id: i32;
+    //let person_id: i32;
+    //let genre_id: i32;
 
-    if let Ok(person) = find_persons_by_name_strict(person_name, pool).await {
-        tracing::info!("from db::add_partition : personne : {:?}", person);
-        person_id = person.id;
-    } else {
-        return Err(MyAppError::new(
-            StatusCode::NOT_FOUND,
-            "Musicien pas trouvé",
-        ));
-    };
+    let person = find_persons_by_name_strict(person_name, pool).await?;
+    let person_id = person.id;
 
-    if let Ok(genre) = find_genre_by_name(genre_name, pool).await {
-        tracing::info!("from db::add_partition : genre : {:?}", genre);
-        genre_id = genre[0].id;
-    } else {
-        return Err(MyAppError::new(StatusCode::NOT_FOUND, "Genre pas trouvé"));
-    };
+    let genre = find_genre_by_name_strict(genre_name, pool).await?;
+    let genre_id = genre.id;
 
-    let partition = sqlx::query(
-        "INSERT INTO partitions (title, person_id, genre_id)
+    let partition: Partition = sqlx::query_as!(
+        Partition,
+        r#"INSERT INTO partitions (title, person_id, genre_id)
                 VALUES ( $1, $2, $3 )
-                RETURNING id, title, person_id, genre_id;",
+                RETURNING id as "id?", title, person_id, genre_id;"#,
+        title,
+        person_id,
+        genre_id,
     )
-    .bind(&title)
-    .bind(person_id)
-    .bind(genre_id)
-    .map(|row: PgRow| Partition {
-        id: row.get(0),
-        title: row.get(1),
-        person_id: row.get(2),
-        genre_id: row.get(3),
-    })
     .fetch_one(pool)
     .await?;
+    //.map_err(|err| MyAppError::from(err))?;
 
     tracing::info!("db : partition added : {:?}", &partition);
-
     Ok(partition)
 }
 
@@ -84,8 +76,8 @@ pub async fn update_partition(
     let partition = Partition {
         id: Some(row.id),
         title: row.title,
-        person_id: row.person_id.unwrap(),
-        genre_id: row.genre_id.unwrap(),
+        person_id: row.person_id,
+        genre_id: row.genre_id,
     };
     Ok(partition)
 }
@@ -109,9 +101,9 @@ pub async fn delete_partition(id: i32, pool: &PgPool) -> Result<String, MyAppErr
 //
 
 ///
-/// Returns a list of all partitions in the db
+/// **Returns a list of all partitions in the db**<br>
 /// under the form of a Vec<ShowPartition>
-/// or a sqlx Error
+/// or a MyAppError
 ///
 pub async fn list_show_partitions(pool: &PgPool) -> Result<Vec<ShowPartition>, MyAppError> {
     let rep: Vec<ShowPartition> = sqlx::query(
@@ -137,8 +129,8 @@ pub async fn list_show_partitions(pool: &PgPool) -> Result<Vec<ShowPartition>, M
 }
 
 ///
-/// Return a readable partition (ShowPartition) from a Partition
-/// or sqlxError
+/// **Returns a readable partition (ShowPartition) from a Partition Struct**<br>
+/// or MyAppError
 ///
 pub async fn show_one_partition(
     partition: Partition,
@@ -164,6 +156,7 @@ pub async fn show_one_partition(
     })
     .fetch_one(pool)
     .await?;
+    //.map_err(|err| MyAppError::from(err))?;
 
     Ok(show_partition)
 }
@@ -185,7 +178,7 @@ pub async fn find_partition_by_id(id: i32, pool: &PgPool) -> Result<Partition, M
 }
 
 ///
-/// find_partition_by_title
+/// **Find_partition_by_title**
 ///
 /// Un titre tronqué entré retourne la liste des partitions qui commencent
 /// par les lettres entrées.
@@ -216,8 +209,8 @@ pub async fn find_partition_by_genre(
     genre_name: String,
     pool: &PgPool,
 ) -> Result<Vec<Partition>, MyAppError> {
-    let genre = find_genre_by_name(genre_name.clone(), pool).await?;
-    let genre_id = genre[0].id;
+    let genre = find_genre_by_name_strict(genre_name.clone(), pool).await?;
+    let genre_id = genre.id;
 
     let partitions = sqlx::query(
         "SELECT * FROM partitions \
